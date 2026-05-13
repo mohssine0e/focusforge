@@ -562,7 +562,7 @@ Validate:
 
 ### Task 22 - Refactor controllers and backend responses
 
-- [ ] **Task 22 complete**
+- [x] **Task 22 complete**
 
 Refactor controllers to stay thin.
 

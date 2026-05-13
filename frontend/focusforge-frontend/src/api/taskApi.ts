@@ -25,25 +25,31 @@ export interface TaskRequest {
 
 class TaskApi {
   async getTasksByProject(projectId: number): Promise<Task[]> {
-    const response = await httpClient.get<Task[]>(`/api/projects/${projectId}/tasks`);
+    const response = await httpClient.get(`/api/projects/${projectId}/tasks`);
     return response.data;
   }
 
   async getTask(id: number): Promise<Task> {
-    const response = await httpClient.get<Task>(`/api/tasks/${id}`);
+    const response = await httpClient.get(`/api/tasks/${id}`);
     return response.data;
   }
 
   async createTask(projectId: number, taskData: TaskRequest): Promise<Task> {
-    const response = await httpClient.post<Task>(`/api/projects/${projectId}/tasks`, null, {
+    const response = await httpClient.post(`/api/projects/${projectId}/tasks`, null, {
       params: taskData,
     });
     return response.data;
   }
 
   async updateTask(id: number, taskData: TaskRequest): Promise<Task> {
-    const response = await httpClient.put<Task>(`/api/tasks/${id}`, null, {
+    const response = await httpClient.put(`/api/tasks/${id}`, null, {
       params: taskData,
+      paramsSerializer: {
+        encode: (value) => value,
+        serialize: (params) => {
+          return Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
+        }
+      }
     });
     return response.data;
   }
@@ -53,7 +59,7 @@ class TaskApi {
   }
 
   async updateTaskStatus(taskId: number, status: string): Promise<any> {
-    const response = await httpClient.patch<any>(`/api/tasks/${taskId}/status`, null, {
+    const response = await httpClient.patch(`/api/tasks/${taskId}/status`, null, {
       params: { status }
     });
     return response.data;

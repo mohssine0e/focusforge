@@ -15,22 +15,22 @@ export interface CreateWorkspaceRequest {
 
 class WorkspaceApi {
   async createWorkspace(workspace: CreateWorkspaceRequest): Promise<Workspace> {
-    const response = await httpClient.post<Workspace>('/api/workspaces', workspace);
+    const response = await httpClient.post('/api/workspaces', workspace);
     return response.data;
   }
 
   async getWorkspaces(): Promise<Workspace[]> {
-    const response = await httpClient.get<Workspace[]>('/api/workspaces');
+    const response = await httpClient.get('/api/workspaces');
     return response.data;
   }
 
   async getWorkspace(id: number): Promise<Workspace> {
-    const response = await httpClient.get<Workspace>(`/api/workspaces/${id}`);
+    const response = await httpClient.get(`/api/workspaces/${id}`);
     return response.data;
   }
 
   async updateWorkspace(id: number, workspace: CreateWorkspaceRequest): Promise<Workspace> {
-    const response = await httpClient.put<Workspace>(`/api/workspaces/${id}`, workspace);
+    const response = await httpClient.put(`/api/workspaces/${id}`, workspace);
     return response.data;
   }
 

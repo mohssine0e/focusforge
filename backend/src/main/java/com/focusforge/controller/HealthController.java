@@ -1,5 +1,6 @@
 package com.focusforge.controller;
 
+import com.focusforge.dto.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -7,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class HealthController {
 
     @GetMapping("/api/health")
-    public String healthCheck() {
-        return "FocusForge backend is running!";
+    public ApiResponse<String> healthCheck() {
+        return ApiResponse.success("FocusForge backend is running!", "Health check successful");
     }
 }

@@ -33,22 +33,22 @@ export interface ProjectRequest {
 
 class ProjectApi {
   async createProject(workspaceId: number, project: CreateProjectRequest): Promise<Project> {
-    const response = await httpClient.post<Project>(`/api/workspaces/${workspaceId}/projects`, project);
+    const response = await httpClient.post(`/api/workspaces/${workspaceId}/projects`, project);
     return response.data;
   }
 
   async getProjects(workspaceId: number): Promise<Project[]> {
-    const response = await httpClient.get<Project[]>(`/api/workspaces/${workspaceId}/projects`);
+    const response = await httpClient.get(`/api/workspaces/${workspaceId}/projects`);
     return response.data;
   }
 
   async getProject(id: number): Promise<Project> {
-    const response = await httpClient.get<Project>(`/api/projects/${id}`);
+    const response = await httpClient.get(`/api/projects/${id}`);
     return response.data;
   }
 
   async updateProject(id: number, project: CreateProjectRequest): Promise<Project> {
-    const response = await httpClient.put<Project>(`/api/projects/${id}`, project);
+    const response = await httpClient.put(`/api/projects/${id}`, project);
     return response.data;
   }
 

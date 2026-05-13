@@ -2,11 +2,35 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8080';
 
-export const httpClient = axios.create({
+// Define the API response interface
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string;
+  timestamp: string;
+}
+
+// Create an interceptor to handle the new API response format
+const httpClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
 });
 
-export const healthApi = {
-  getHealth: () => httpClient.get('/api/health'),
-};
+// Add a response interceptor to automatically extract data from the ApiResponse wrapper
+httpClient.interceptors.response.use(
+  (response) => {
+    // If the response data has the new ApiResponse format, extract the actual data
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+      return {
+        ...response,
+        data: response.data.data
+      };
+    }
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export { httpClient };

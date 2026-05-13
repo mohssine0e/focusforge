@@ -1,5 +1,6 @@
 package com.focusforge.controller;
 
+import com.focusforge.dto.ApiResponse;
 import com.focusforge.entity.Task;
 import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
@@ -14,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api")
 public class TaskController {
 
-    private TaskService taskService;
+    private final TaskService taskService;
 
     @Autowired
     public TaskController(TaskService taskService) {
@@ -22,47 +23,52 @@ public class TaskController {
     }
 
     @GetMapping("/projects/{projectId}/tasks")
-    public ResponseEntity<List<Task>> getTasksByProject(@PathVariable Long projectId) {
+    public ResponseEntity<ApiResponse<List<Task>>> getTasksByProject(@PathVariable Long projectId) {
         List<Task> tasks = taskService.getTasksByProject(projectId);
-        return ResponseEntity.ok(tasks);
+        ApiResponse<List<Task>> response = ApiResponse.success(tasks);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/projects/{projectId}/tasks")
-    public ResponseEntity<Task> createTask(
+    public ResponseEntity<ApiResponse<Task>> createTask(
             @PathVariable Long projectId,
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam TaskType type) {
         Task task = taskService.createTask(projectId, title, description, type);
-        return ResponseEntity.ok(task);
+        ApiResponse<Task> response = ApiResponse.success(task, "Task created successfully");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/tasks/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Task>> getTaskById(@PathVariable Long id) {
         return taskService.getTaskById(id)
-                .map(ResponseEntity::ok)
+                .map(task -> ResponseEntity.ok(ApiResponse.success(task)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/tasks/{id}")
-    public ResponseEntity<Task> updateTask(
+    public ResponseEntity<ApiResponse<Task>> updateTask(
             @PathVariable Long id,
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam TaskType type) {
         Task task = taskService.updateTask(id, title, description, type);
-        return ResponseEntity.ok(task);
+        ApiResponse<Task> response = ApiResponse.success(task, "Task updated successfully");
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/tasks/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
-        return ResponseEntity.noContent().build();
+        ApiResponse<Void> response = ApiResponse.success(null, "Task deleted successfully");
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/tasks/{id}/status")
-    public ResponseEntity<Task> updateTaskStatus(@PathVariable Long id, @RequestParam TaskStatus status) {
+    public ResponseEntity<ApiResponse<Task>> updateTaskStatus(@PathVariable Long id, @RequestParam TaskStatus status) {
         Task task = taskService.updateTaskStatus(id, status);
-        return ResponseEntity.ok(task);
+        ApiResponse<Task> response = ApiResponse.success(task, "Task status updated successfully");
+        return ResponseEntity.ok(response);
     }
 }
