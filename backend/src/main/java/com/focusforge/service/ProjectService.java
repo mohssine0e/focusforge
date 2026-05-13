@@ -50,20 +50,6 @@ public class ProjectService {
                 savedProject.getCreatedAt(),
                 savedProject.getUpdatedAt()
         );
-
-        Project savedProject = projectRepository.save(project);
-        return new ProjectResponse(
-                savedProject.getId(),
-                savedProject.getName(),
-                savedProject.getDescription(),
-                savedProject.getStatus(),
-                savedProject.getPriority(),
-                savedProject.getStartDate(),
-                savedProject.getDueDate(),
-                savedProject.getWorkspace().getId(),
-                savedProject.getCreatedAt(),
-                savedProject.getUpdatedAt()
-        );
     }
 
     public List<ProjectResponse> getProjectsByWorkspace(Long workspaceId) {

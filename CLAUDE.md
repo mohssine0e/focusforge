@@ -9,7 +9,30 @@ Before doing any implementation, read:
 - `CLAUDE.md`
 - `TASKS.md`
 
-Then start at the first unfinished task in `TASKS.md` and continue sequentially. Do not jump ahead, do not invent extra features, and do not stop after a partial implementation if the next required validation is still missing.
+Then start at the first unfinished task in `TASKS.md` and continue sequentially until every task is complete. Do not jump ahead, do not invent extra features, do not stop after one task, and do not stop after a partial implementation if the next required validation is still missing.
+
+## Autonomous Execution Contract
+
+You must work continuously from the first unfinished task in `TASKS.md` until every task is complete.
+
+A completed task is not a stopping point. After validating, marking the checkbox, committing, and pushing one task, immediately find the next unfinished task and continue.
+
+Do not ask whether to continue. Do not wait for confirmation between tasks. Do not provide a final summary until all tasks in `TASKS.md` are complete.
+
+Only stop for one of these reasons:
+
+1. All tasks in `TASKS.md` are complete.
+2. A real external blocker requires user action, such as missing credentials, broken remote Git configuration, unavailable database, or an unclear destructive choice.
+3. The tool, session, context window, or API limit forces you to stop.
+
+If forced to stop, clearly report:
+
+- the current task number
+- what was completed
+- what remains
+- the exact next command or action needed to resume
+
+On the next run, resume from the first unfinished task. Never restart from Task 1 and never redo completed tasks.
 
 ## Project Vision
 

@@ -1267,6 +1267,8 @@ Read CLAUDE.md and TASKS.md carefully.
 
 Start from the first unfinished task and execute tasks sequentially.
 
+Continue autonomously until every task in TASKS.md is complete.
+
 After each task:
 - validate the result
 - run necessary backend/frontend checks
@@ -1274,10 +1276,19 @@ After each task:
 - review git diff and git status
 - commit changes
 - push to GitHub
-- then continue to the next task
+- immediately continue to the next unfinished task
 
 Do not skip tasks.
 Do not build features outside the scope.
 Each phase must keep the app working as a mini-MVP with backend and frontend connected.
-Never stop until all tasks are completed, unless a real blocker requires user action.
+Do not ask whether to continue between tasks.
+Do not stop after completing only one task.
+Do not provide a final summary until all tasks are complete.
+
+Only stop if:
+- all tasks are complete
+- a real blocker requires user action
+- the session/tool/context/API limit forces you to stop
+
+If stopped, report the exact current task number, what was completed, what remains, and how to resume.
 ```
