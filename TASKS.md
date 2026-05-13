@@ -356,7 +356,7 @@ Validate:
 
 ### Task 14 - Implement Task Factory pattern
 
-- [ ] **Task 14 complete**
+- [x] **Task 14 complete**
 
 Create `TaskFactory`.
 
