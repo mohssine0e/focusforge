@@ -429,13 +429,17 @@ Goal: user can move tasks through a controlled workflow visually.
 
 ### Task 17 - Add task status update endpoint
 
-- [ ] **Task 17 complete**
+- [x] **Task 17 complete**
 
 Create endpoint:
 
 - `PATCH /api/tasks/{id}/status`
 
 It must update only the task status and return the updated task.
+
+Mini-MVP:
+
+- User can manage task workflow visually from Kanban.
 
 Validate:
 
