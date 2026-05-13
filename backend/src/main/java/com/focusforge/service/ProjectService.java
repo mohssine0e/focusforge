@@ -27,8 +27,7 @@ public class ProjectService {
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace", workspaceId));
 
-        Project.ProjectBuilder builder = Project.builder();
-        Project project = builder
+        Project project = new ProjectBuilder.Builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .status(request.getStatus())
@@ -37,6 +36,20 @@ public class ProjectService {
                 .dueDate(request.getDueDate())
                 .workspace(workspace)
                 .build();
+
+        Project savedProject = projectRepository.save(project);
+        return new ProjectResponse(
+                savedProject.getId(),
+                savedProject.getName(),
+                savedProject.getDescription(),
+                savedProject.getStatus(),
+                savedProject.getPriority(),
+                savedProject.getStartDate(),
+                savedProject.getDueDate(),
+                savedProject.getWorkspace().getId(),
+                savedProject.getCreatedAt(),
+                savedProject.getUpdatedAt()
+        );
 
         Project savedProject = projectRepository.save(project);
         return new ProjectResponse(

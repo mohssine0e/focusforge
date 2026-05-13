@@ -298,7 +298,7 @@ Validate:
 
 ### Task 12 - Build Project frontend inside Workspace detail
 
-- [ ] **Task 12 complete**
+- [x] **Task 12 complete**
 
 Create:
 
@@ -325,7 +325,7 @@ Goal: user can manage tasks inside a project, and Factory pattern creates task t
 
 ### Task 13 - Create Task backend model
 
-- [ ] **Task 13 complete**
+- [x] **Task 13 complete**
 
 Create:
 
