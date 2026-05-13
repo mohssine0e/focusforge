@@ -1,17 +1,7 @@
 import { httpClient } from './httpClient';
+import type { CreateWorkspaceRequest, Workspace } from '../types';
 
-export interface Workspace {
-  id: number;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateWorkspaceRequest {
-  name: string;
-  description: string;
-}
+export type { CreateWorkspaceRequest, Workspace } from '../types';
 
 class WorkspaceApi {
   async createWorkspace(workspace: CreateWorkspaceRequest): Promise<Workspace> {

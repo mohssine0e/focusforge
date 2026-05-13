@@ -1,27 +1,7 @@
 import { httpClient } from './httpClient';
+import type { Task, TaskRequest, TaskStatusType } from '../types';
 
-export interface Task {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  type: string;
-  dueDate: string;
-  estimatedMinutes: number;
-  project: {
-    id: number;
-    name: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TaskRequest {
-  title: string;
-  description: string;
-  type: string;
-}
+export type { Task, TaskRequest, TaskStatusType } from '../types';
 
 class TaskApi {
   async getTasksByProject(projectId: number): Promise<Task[]> {
@@ -36,20 +16,22 @@ class TaskApi {
 
   async createTask(projectId: number, taskData: TaskRequest): Promise<Task> {
     const response = await httpClient.post(`/api/projects/${projectId}/tasks`, null, {
-      params: taskData,
+      params: {
+        title: taskData.title,
+        description: taskData.description,
+        type: taskData.type,
+      },
     });
     return response.data;
   }
 
   async updateTask(id: number, taskData: TaskRequest): Promise<Task> {
     const response = await httpClient.put(`/api/tasks/${id}`, null, {
-      params: taskData,
-      paramsSerializer: {
-        encode: (value) => value,
-        serialize: (params) => {
-          return Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
-        }
-      }
+      params: {
+        title: taskData.title,
+        description: taskData.description,
+        type: taskData.type,
+      },
     });
     return response.data;
   }
@@ -58,9 +40,9 @@ class TaskApi {
     await httpClient.delete(`/api/tasks/${id}`);
   }
 
-  async updateTaskStatus(taskId: number, status: string): Promise<any> {
+  async updateTaskStatus(taskId: number, status: TaskStatusType): Promise<Task> {
     const response = await httpClient.patch(`/api/tasks/${taskId}/status`, null, {
-      params: { status }
+      params: { status },
     });
     return response.data;
   }

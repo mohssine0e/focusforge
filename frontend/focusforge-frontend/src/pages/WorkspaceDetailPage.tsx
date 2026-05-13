@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { workspaceApi } from '../api/workspaceApi';
-import type { Workspace } from '../api/workspaceApi';
+import type { Workspace } from '../types';
 import ProjectList from '../components/projects/ProjectList';
 
 const WorkspaceDetailPage: React.FC = () => {

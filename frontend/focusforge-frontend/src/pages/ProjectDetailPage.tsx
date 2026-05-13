@@ -2,8 +2,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { projectApi } from '../api/projectApi';
 import { taskApi } from '../api/taskApi';
-import type { Project } from '../api/projectApi';
-import type { Task, TaskRequest } from '../api/taskApi';
+import type { Project, Task, TaskRequest, TaskType } from '../types';
 
 const statusClass: Record<string, string> = {
   TODO: 'bg-slate-400/10 text-slate-200',
@@ -166,7 +165,7 @@ const ProjectDetailPage: React.FC = () => {
             <select
               className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
               value={newTask.type}
-              onChange={(e) => setNewTask({...newTask, type: e.target.value})}
+              onChange={(e) => setNewTask({...newTask, type: e.target.value as TaskType})}
             >
               <option value="STUDY">Study</option>
               <option value="CODING">Coding</option>
@@ -206,7 +205,7 @@ const ProjectDetailPage: React.FC = () => {
                     <select
                       className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
                       value={editTask.type}
-                      onChange={(e) => setEditTask({ ...editTask, type: e.target.value })}
+                      onChange={(e) => setEditTask({ ...editTask, type: e.target.value as TaskType })}
                     >
                       <option value="STUDY">Study</option>
                       <option value="CODING">Coding</option>

@@ -581,7 +581,7 @@ Validate:
 
 ### Task 23 - Organize frontend API and app state
 
-- [ ] **Task 23 complete**
+- [x] **Task 23 complete**
 
 Organize frontend code:
 

@@ -1,35 +1,7 @@
 import { httpClient } from './httpClient';
+import type { Project, CreateProjectRequest } from '../types';
 
-export interface Project {
-  id: number;
-  name: string;
-  description: string;
-  status: string;
-  priority: string;
-  startDate: string;
-  dueDate: string;
-  workspaceId: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateProjectRequest {
-  name: string;
-  description: string;
-  status: string;
-  priority: string;
-  startDate: string;
-  dueDate: string;
-}
-
-export interface ProjectRequest {
-  name: string;
-  description: string;
-  status: string;
-  priority: string;
-  startDate: string;
-  dueDate: string;
-}
+export type { CreateProjectRequest, Project } from '../types';
 
 class ProjectApi {
   async createProject(workspaceId: number, project: CreateProjectRequest): Promise<Project> {

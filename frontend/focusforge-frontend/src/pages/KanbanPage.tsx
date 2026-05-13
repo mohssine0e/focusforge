@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { taskApi } from '../api/taskApi';
-import type { Task } from '../api/taskApi';
+import type { Task, TaskStatusType } from '../types';
 
 const statusClass: Record<string, string> = {
   TODO: 'bg-slate-400/10 text-slate-200',
@@ -19,7 +19,7 @@ const priorityClass: Record<string, string> = {
 };
 
 // Define valid state transitions based on the State pattern rules
-const getValidTransitions = (currentStatus: string): string[] => {
+const getValidTransitions = (currentStatus: TaskStatusType): TaskStatusType[] => {
   switch (currentStatus) {
     case 'TODO':
       return ['IN_PROGRESS', 'BLOCKED'];
@@ -57,6 +57,7 @@ const KanbanPage: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTasks();
   }, [fetchTasks, id]);
 
@@ -85,7 +86,7 @@ const KanbanPage: React.FC = () => {
     tasksByStatus[status].push(task);
   });
 
-  const updateTaskStatus = async (taskId: number, newStatus: string) => {
+  const updateTaskStatus = async (taskId: number, newStatus: TaskStatusType) => {
     try {
       await taskApi.updateTaskStatus(taskId, newStatus);
       // Update local state
@@ -99,8 +100,7 @@ const KanbanPage: React.FC = () => {
   };
 
   const getTransitionButtons = (task: Task) => {
-    const currentStatus = task.status;
-    const validTransitions = getValidTransitions(currentStatus);
+    const validTransitions = getValidTransitions(task.status);
 
     return (
       <div className="mt-2 flex flex-wrap gap-1">
