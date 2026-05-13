@@ -273,7 +273,7 @@ Validate:
 
 ### Task 11 - Add Project backend CRUD endpoints
 
-- [ ] **Task 11 complete**
+- [x] **Task 11 complete**
 
 Create:
 
