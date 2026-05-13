@@ -9,7 +9,7 @@ Follow `CLAUDE.md` strictly:
 - Complete tasks sequentially.
 - Validate after each task.
 - Mark the completed task checkbox from `- [ ]` to `- [x]`.
-- Commit after each task.
+- Commit after each task.(if no remote branch, create one with `git checkout -b main` first)
 - Push to GitHub after each task.
 - Do not continue to the next task until the current task is validated and pushed.
 
@@ -128,7 +128,7 @@ Goal: user can create, view, update, and delete workspaces from the UI.
 
 ### Task 5 - Add shared backend foundation
 
-- [ ] **Task 5 complete**
+- [x] **Task 5 complete**
 
 Add backend foundation needed by entities:
 
