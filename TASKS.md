@@ -146,7 +146,7 @@ Validate:
 
 ### Task 6 - Create Workspace backend model and CRUD
 
-- [ ] **Task 6 complete**
+- [x] **Task 6 complete**
 
 Create:
 
