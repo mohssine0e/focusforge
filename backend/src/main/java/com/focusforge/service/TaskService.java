@@ -2,6 +2,7 @@ package com.focusforge.service;
 
 import com.focusforge.entity.Project;
 import com.focusforge.entity.Task;
+import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
 import com.focusforge.factory.TaskFactory;
 import com.focusforge.repository.ProjectRepository;
@@ -55,5 +56,12 @@ public class TaskService {
 
     public Optional<Task> getTaskById(Long id) {
         return taskRepository.findById(id);
+    }
+
+    public Task updateTaskStatus(Long id, TaskStatus status) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found: " + id));
+        task.setStatus(status);
+        return taskRepository.save(task);
     }
 }

@@ -1,6 +1,7 @@
 package com.focusforge.controller;
 
 import com.focusforge.entity.Task;
+import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
 import com.focusforge.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,5 +58,11 @@ public class TaskController {
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/tasks/{id}/status")
+    public ResponseEntity<Task> updateTaskStatus(@PathVariable Long id, @RequestParam TaskStatus status) {
+        Task task = taskService.updateTaskStatus(id, status);
+        return ResponseEntity.ok(task);
     }
 }
