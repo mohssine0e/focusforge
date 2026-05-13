@@ -51,6 +51,13 @@ class TaskApi {
   async deleteTask(id: number): Promise<void> {
     await httpClient.delete(`/api/tasks/${id}`);
   }
+
+  async updateTaskStatus(taskId: number, status: string): Promise<any> {
+    const response = await httpClient.patch<any>(`/api/tasks/${taskId}/status`, null, {
+      params: { status }
+    });
+    return response.data;
+  }
 }
 
 export const taskApi = new TaskApi();

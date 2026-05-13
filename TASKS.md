@@ -449,7 +449,7 @@ Validate:
 
 ### Task 18 - Implement State pattern for task transitions
 
-- [ ] **Task 18 complete**
+- [x] **Task 18 complete**
 
 Implement State pattern for valid task status transitions.
 
@@ -464,6 +464,12 @@ Allowed transitions:
 
 Invalid transitions must be rejected with a clear error.
 
+Mini-MVP:
+
+- Valid transitions work.
+- Invalid transitions fail.
+- State pattern classes are used by service code.
+
 Validate:
 
 - Valid transitions work.
@@ -473,9 +479,17 @@ Validate:
 
 ### Task 19 - Build Kanban board frontend
 
-- [ ] **Task 19 complete**
+- [x] **Task 19 complete**
 
 Create Kanban view with columns:
+
+- `TODO`
+- `IN_PROGRESS`
+- `BLOCKED`
+- `REVIEW`
+- `DONE`
+
+Show tasks as cards with:
 
 - `TODO`
 - `IN_PROGRESS`
