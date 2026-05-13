@@ -172,7 +172,7 @@ Validate:
 
 ### Task 7 - Create Workspace REST controller
 
-- [ ] **Task 7 complete**
+- [x] **Task 7 complete**
 
 Add endpoints:
 
@@ -191,7 +191,7 @@ Validate:
 
 ### Task 8 - Build Workspace frontend API and page
 
-- [ ] **Task 8 complete**
+- [x] **Task 8 complete**
 
 Create:
 
@@ -220,7 +220,7 @@ Goal: user can manage projects inside a workspace, and Builder pattern is used i
 
 ### Task 9 - Create Project backend model
 
-- [ ] **Task 9 complete**
+- [x] **Task 9 complete**
 
 Create:
 
