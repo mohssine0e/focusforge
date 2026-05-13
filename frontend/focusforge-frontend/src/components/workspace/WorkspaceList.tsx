@@ -10,7 +10,7 @@ interface Workspace {
   updatedAt: string;
 }
 
-const WorkspaceList: React.FC = () => {
+const WorkspaceList: React.FunctionComponent = () => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
