@@ -1,4 +1,4 @@
-import { httpClient } from '../httpClient';
+import { httpClient } from './httpClient';
 
 export interface Task {
   id: number;
@@ -17,31 +17,39 @@ export interface Task {
   updatedAt: string;
 }
 
-class TaskApi {
-  private readonly baseUrl = 'http://localhost:8080/api';
+export interface TaskRequest {
+  title: string;
+  description: string;
+  type: string;
+}
 
+class TaskApi {
   async getTasksByProject(projectId: number): Promise<Task[]> {
-    const response = await httpClient.get(`${this.baseUrl}/projects/${projectId}/tasks`);
+    const response = await httpClient.get<Task[]>(`/api/projects/${projectId}/tasks`);
     return response.data;
   }
 
   async getTask(id: number): Promise<Task> {
-    const response = await httpClient.get(`${this.baseUrl}/tasks/${id}`);
+    const response = await httpClient.get<Task>(`/api/tasks/${id}`);
     return response.data;
   }
 
-  async createTask(projectId: number, taskData: any): Promise<Task> {
-    const response = await httpClient.post(`${this.baseUrl}/projects/${projectId}/tasks`, taskData);
+  async createTask(projectId: number, taskData: TaskRequest): Promise<Task> {
+    const response = await httpClient.post<Task>(`/api/projects/${projectId}/tasks`, null, {
+      params: taskData,
+    });
     return response.data;
   }
 
-  async updateTask(id: number, taskData: any): Promise<Task> {
-    const response = await httpClient.put(`${this.baseUrl}/tasks/${id}`, taskData);
+  async updateTask(id: number, taskData: TaskRequest): Promise<Task> {
+    const response = await httpClient.put<Task>(`/api/tasks/${id}`, null, {
+      params: taskData,
+    });
     return response.data;
   }
 
   async deleteTask(id: number): Promise<void> {
-    await httpClient.delete(`${this.baseUrl}/tasks/${id}`);
+    await httpClient.delete(`/api/tasks/${id}`);
   }
 }
 

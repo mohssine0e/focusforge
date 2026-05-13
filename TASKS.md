@@ -377,7 +377,7 @@ Validate:
 
 ### Task 15 - Add Task backend CRUD endpoints
 
-- [ ] **Task 15 complete**
+- [x] **Task 15 complete**
 
 Create:
 
@@ -402,7 +402,7 @@ Validate:
 
 ### Task 16 - Build Task frontend inside Project detail
 
-- [ ] **Task 16 complete**
+- [x] **Task 16 complete**
 
 Create:
 

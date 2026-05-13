@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { healthApi } from './api/healthApi';
+import ProjectDetailPage from './pages/ProjectDetailPage';
+import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
 import WorkspacePage from './pages/WorkspacePage';
 
 function App() {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'workspaces'>('dashboard');
   const [healthStatus, setHealthStatus] = useState<string>('Checking...');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -14,7 +16,7 @@ function App() {
         const response = await healthApi.getHealth();
         setHealthStatus(response.data);
         setIsLoading(false);
-      } catch (error) {
+      } catch {
         setHealthStatus('Backend connection failed');
         setIsLoading(false);
       }
@@ -66,32 +68,46 @@ function App() {
   );
 
   return (
-    <div className="app">
-      <header className="app-header bg-white dark:bg-gray-800 shadow-md">
+    <div className="app min-h-screen bg-slate-950 text-slate-100">
+      <header className="app-header border-b border-slate-800 bg-slate-950/95 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">FocusForge</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
+          <h1 className="text-3xl font-bold text-white">FocusForge</h1>
+          <p className="text-lg text-slate-400">
             Productivity and project management for engineering students and developers
           </p>
-          <nav className="mt-4">
-            <button
-              onClick={() => setCurrentView('dashboard')}
-              className="mr-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          <nav className="mt-4 flex gap-3">
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `rounded-md px-4 py-2 text-sm font-medium transition ${
+                  isActive ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                }`
+              }
             >
               Dashboard
-            </button>
-            <button
-              onClick={() => setCurrentView('workspaces')}
-              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            </NavLink>
+            <NavLink
+              to="/workspaces"
+              className={({ isActive }) =>
+                `rounded-md px-4 py-2 text-sm font-medium transition ${
+                  isActive ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                }`
+              }
             >
               Workspaces
-            </button>
+            </NavLink>
           </nav>
         </div>
       </header>
       <main className="main-content py-6">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          {currentView === 'dashboard' ? renderDashboard() : <WorkspacePage />}
+          <Routes>
+            <Route path="/" element={renderDashboard()} />
+            <Route path="/workspaces" element={<WorkspacePage />} />
+            <Route path="/workspaces/:id" element={<WorkspaceDetailPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </div>
       </main>
     </div>

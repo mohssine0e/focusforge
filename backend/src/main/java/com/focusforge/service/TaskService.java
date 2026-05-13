@@ -42,7 +42,7 @@ public class TaskService {
         task.setTitle(title);
         task.setDescription(description);
         task.setType(type);
-        return task;
+        return taskRepository.save(task);
     }
 
     public void deleteTask(Long id) {
