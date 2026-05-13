@@ -513,7 +513,7 @@ Validate:
 
 ### Task 20 - Connect Kanban status actions
 
-- [ ] **Task 20 complete**
+- [x] **Task 20 complete**
 
 Add status movement actions:
 
