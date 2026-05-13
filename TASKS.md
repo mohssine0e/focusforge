@@ -541,7 +541,7 @@ Goal: make the architecture look professional and keep controllers thin.
 
 ### Task 21 - Add ProjectManagementFacade
 
-- [ ] **Task 21 complete**
+- [x] **Task 21 complete**
 
 Create `ProjectManagementFacade`.
 
