@@ -18,6 +18,24 @@ const priorityClass: Record<string, string> = {
   URGENT: 'bg-red-400/10 text-red-200',
 };
 
+// Define valid state transitions based on the State pattern rules
+const getValidTransitions = (currentStatus: string): string[] => {
+  switch (currentStatus) {
+    case 'TODO':
+      return ['IN_PROGRESS', 'BLOCKED'];
+    case 'IN_PROGRESS':
+      return ['REVIEW', 'BLOCKED'];
+    case 'BLOCKED':
+      return ['IN_PROGRESS'];
+    case 'REVIEW':
+      return ['DONE'];
+    case 'DONE':
+      return []; // No transitions allowed from DONE state
+    default:
+      return [];
+  }
+};
+
 const KanbanPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -80,6 +98,25 @@ const KanbanPage: React.FC = () => {
     }
   };
 
+  const getTransitionButtons = (task: Task) => {
+    const currentStatus = task.status;
+    const validTransitions = getValidTransitions(currentStatus);
+
+    return (
+      <div className="mt-2 flex flex-wrap gap-1">
+        {validTransitions.map(transition => (
+          <button
+            key={transition}
+            className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800"
+            onClick={() => updateTaskStatus(task.id, transition)}
+          >
+            {transition}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="kanban-board p-6">
       <h1 className="text-3xl font-bold text-white mb-6">Kanban Board</h1>
@@ -105,40 +142,7 @@ const KanbanPage: React.FC = () => {
                       {task.type}
                     </span>
                   </div>
-                  <div className="mt-3 flex gap-2">
-                    <button className="rounded-md border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800">
-                      Edit
-                    </button>
-                    <button className="rounded-md border border-red-500/40 px-3 py-1 text-sm text-red-200 hover:bg-red-500/10">
-                      Delete
-                    </button>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    <button
-                      className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800"
-                      onClick={() => updateTaskStatus(task.id, 'TODO')}
-                    >
-                      TODO
-                    </button>
-                    <button
-                      className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800"
-                      onClick={() => updateTaskStatus(task.id, 'IN_PROGRESS')}
-                    >
-                      IN_PROGRESS
-                    </button>
-                    <button
-                      className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800"
-                      onClick={() => updateTaskStatus(task.id, 'REVIEW')}
-                    >
-                      REVIEW
-                    </button>
-                    <button
-                      className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800"
-                      onClick={() => updateTaskStatus(task.id, 'DONE')}
-                    >
-                      DONE
-                    </button>
-                  </div>
+                  {getTransitionButtons(task)}
                 </div>
               ))}
             </div>
