@@ -90,6 +90,16 @@ export interface FocusSession {
   createdAt: string;
 }
 
+export interface AnalyticsOverview {
+  totalWorkspaces: number;
+  totalProjects: number;
+  totalTasks: number;
+  tasksByStatus: Record<string, number>;
+  tasksByPriority: Record<string, number>;
+  completedTaskCount: number;
+  totalFocusMinutes: number;
+}
+
 export interface TaskRequest {
   title: string;
   description: string;
