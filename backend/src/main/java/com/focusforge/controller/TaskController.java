@@ -1,6 +1,8 @@
 package com.focusforge.controller;
 
+import com.focusforge.decorator.TaskResponseDecorator;
 import com.focusforge.dto.ApiResponse;
+import com.focusforge.dto.TaskResponse;
 import com.focusforge.entity.Task;
 import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
@@ -16,56 +18,58 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    private final TaskResponseDecorator taskResponseDecorator;
 
     @Autowired
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, TaskResponseDecorator taskResponseDecorator) {
         this.taskService = taskService;
+        this.taskResponseDecorator = taskResponseDecorator;
     }
 
     @GetMapping("/projects/{projectId}/tasks")
-    public ResponseEntity<ApiResponse<List<Task>>> getTasksByProject(
+    public ResponseEntity<ApiResponse<List<TaskResponse>>> getTasksByProject(
             @PathVariable Long projectId,
             @RequestParam(required = false) String sort) {
         List<Task> tasks = taskService.getTasksByProject(projectId, sort);
-        ApiResponse<List<Task>> response = ApiResponse.success(tasks);
+        ApiResponse<List<TaskResponse>> response = ApiResponse.success(taskResponseDecorator.decorateAll(tasks));
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/projects/{projectId}/tasks/recommended")
-    public ResponseEntity<ApiResponse<Task>> getRecommendedTask(
+    public ResponseEntity<ApiResponse<TaskResponse>> getRecommendedTask(
             @PathVariable Long projectId,
             @RequestParam(required = false) String strategy) {
         Task task = taskService.getRecommendedTask(projectId, strategy).orElse(null);
-        ApiResponse<Task> response = ApiResponse.success(task);
+        ApiResponse<TaskResponse> response = ApiResponse.success(task == null ? null : taskResponseDecorator.decorate(task));
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/projects/{projectId}/tasks")
-    public ResponseEntity<ApiResponse<Task>> createTask(
+    public ResponseEntity<ApiResponse<TaskResponse>> createTask(
             @PathVariable Long projectId,
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam TaskType type) {
         Task task = taskService.createTask(projectId, title, description, type);
-        ApiResponse<Task> response = ApiResponse.success(task, "Task created successfully");
+        ApiResponse<TaskResponse> response = ApiResponse.success(taskResponseDecorator.decorate(task), "Task created successfully");
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/tasks/{id}")
-    public ResponseEntity<ApiResponse<Task>> getTaskById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<TaskResponse>> getTaskById(@PathVariable Long id) {
         return taskService.getTaskById(id)
-                .map(task -> ResponseEntity.ok(ApiResponse.success(task)))
+                .map(task -> ResponseEntity.ok(ApiResponse.success(taskResponseDecorator.decorate(task))))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/tasks/{id}")
-    public ResponseEntity<ApiResponse<Task>> updateTask(
+    public ResponseEntity<ApiResponse<TaskResponse>> updateTask(
             @PathVariable Long id,
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam TaskType type) {
         Task task = taskService.updateTask(id, title, description, type);
-        ApiResponse<Task> response = ApiResponse.success(task, "Task updated successfully");
+        ApiResponse<TaskResponse> response = ApiResponse.success(taskResponseDecorator.decorate(task), "Task updated successfully");
         return ResponseEntity.ok(response);
     }
 
@@ -77,9 +81,9 @@ public class TaskController {
     }
 
     @PatchMapping("/tasks/{id}/status")
-    public ResponseEntity<ApiResponse<Task>> updateTaskStatus(@PathVariable Long id, @RequestParam TaskStatus status) {
+    public ResponseEntity<ApiResponse<TaskResponse>> updateTaskStatus(@PathVariable Long id, @RequestParam TaskStatus status) {
         Task task = taskService.updateTaskStatus(id, status);
-        ApiResponse<Task> response = ApiResponse.success(task, "Task status updated successfully");
+        ApiResponse<TaskResponse> response = ApiResponse.success(taskResponseDecorator.decorate(task), "Task status updated successfully");
         return ResponseEntity.ok(response);
     }
 }

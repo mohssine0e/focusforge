@@ -943,7 +943,7 @@ Goal: tasks display smart computed metadata without bloating the base entity.
 
 ### Task 39 - Implement task display decorators
 
-- [ ] **Task 39 complete**
+- [x] **Task 39 complete**
 
 Create decorators:
 
