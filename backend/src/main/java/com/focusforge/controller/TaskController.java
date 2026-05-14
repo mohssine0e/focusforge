@@ -31,6 +31,15 @@ public class TaskController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/projects/{projectId}/tasks/recommended")
+    public ResponseEntity<ApiResponse<Task>> getRecommendedTask(
+            @PathVariable Long projectId,
+            @RequestParam(required = false) String strategy) {
+        Task task = taskService.getRecommendedTask(projectId, strategy).orElse(null);
+        ApiResponse<Task> response = ApiResponse.success(task);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/projects/{projectId}/tasks")
     public ResponseEntity<ApiResponse<Task>> createTask(
             @PathVariable Long projectId,

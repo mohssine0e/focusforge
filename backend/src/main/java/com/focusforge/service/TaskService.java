@@ -10,6 +10,7 @@ import com.focusforge.observer.TaskObserver;
 import com.focusforge.observer.TaskStatusChangedEvent;
 import com.focusforge.repository.ProjectRepository;
 import com.focusforge.repository.TaskRepository;
+import com.focusforge.strategy.TaskRecommendationStrategy;
 import com.focusforge.strategy.TaskSortStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,15 +27,17 @@ public class TaskService {
     private TaskDependencyService taskDependencyService;
     private List<TaskObserver> taskObservers;
     private List<TaskSortStrategy> taskSortStrategies;
+    private List<TaskRecommendationStrategy> taskRecommendationStrategies;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService, TaskDependencyService taskDependencyService, List<TaskObserver> taskObservers, List<TaskSortStrategy> taskSortStrategies) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService, TaskDependencyService taskDependencyService, List<TaskObserver> taskObservers, List<TaskSortStrategy> taskSortStrategies, List<TaskRecommendationStrategy> taskRecommendationStrategies) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.taskStateService = taskStateService;
         this.taskDependencyService = taskDependencyService;
         this.taskObservers = taskObservers;
         this.taskSortStrategies = taskSortStrategies;
+        this.taskRecommendationStrategies = taskRecommendationStrategies;
     }
 
     public Task createTask(Long projectId, String title, String description, TaskType type) {
@@ -61,6 +64,17 @@ public class TaskService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported task sort: " + sort))
                 .sort(tasks);
+    }
+
+    public Optional<Task> getRecommendedTask(Long projectId, String strategyKey) {
+        String resolvedStrategyKey = (strategyKey == null || strategyKey.isBlank()) ? "priority" : strategyKey;
+        List<Task> tasks = getTasksByProject(projectId);
+
+        return taskRecommendationStrategies.stream()
+                .filter(strategy -> strategy.getStrategyKey().equalsIgnoreCase(resolvedStrategyKey))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported recommendation strategy: " + resolvedStrategyKey))
+                .recommend(tasks);
     }
 
     public Task updateTask(Long id, String title, String description, TaskType type) {
