@@ -609,7 +609,7 @@ Goal: tasks can depend on other tasks, with validation preventing impossible wor
 
 ### Task 24 - Add task dependency backend model
 
-- [ ] **Task 24 complete**
+- [x] **Task 24 complete**
 
 Implement dependencies using either:
 
