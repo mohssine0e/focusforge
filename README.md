@@ -16,7 +16,10 @@ It combines project tracking, task workflow, dependencies, focus sessions, notif
 - Focus session tracking with start, finish, cancel, and history
 - Analytics dashboard for project/task totals, workload, priorities, status, and focus time
 - Calendar planning view backed by due-task filters
+- Login/register flow with bearer-token protected APIs
+- Per-user data ownership for workspaces, projects, tasks, focus sessions, notifications, and analytics
 - Premium dark-mode React UI with responsive sidebar/topbar layout
+- Search across workspaces, projects, and tasks
 
 ## Tech Stack
 
@@ -80,6 +83,12 @@ Prerequisites:
 - Node.js and npm
 - PostgreSQL running locally
 
+Start PostgreSQL with Docker:
+
+```bash
+docker-compose up -d
+```
+
 Create a PostgreSQL database:
 
 ```bash
@@ -90,6 +99,15 @@ Configure database credentials in:
 
 ```txt
 backend/src/main/resources/application.properties
+```
+
+Or override with environment variables:
+
+```bash
+DB_URL=jdbc:postgresql://localhost:5432/focusforge
+DB_USERNAME=mohssine
+DB_PASSWORD=mohssine
+FOCUSFORGE_TOKEN_SECRET=change-this-secret
 ```
 
 Run the backend:
@@ -121,6 +139,13 @@ http://localhost:5173
 
 The Vite dev server proxies `/api` to the backend.
 
+Demo login:
+
+```txt
+Email: demo@focusforge.dev
+Password: focusforge
+```
+
 ## Validation
 
 Backend:
@@ -145,6 +170,12 @@ npm run lint
 Health:
 
 - `GET /api/health`
+
+Auth:
+
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `GET /api/auth/me`
 
 Workspaces:
 

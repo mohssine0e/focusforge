@@ -54,4 +54,9 @@ public class FocusSessionController {
     public ResponseEntity<ApiResponse<List<FocusSessionResponse>>> getAllSessions() {
         return ResponseEntity.ok(ApiResponse.success(focusSessionService.getAllSessions()));
     }
+
+    @GetMapping("/focus-sessions/active")
+    public ResponseEntity<ApiResponse<FocusSessionResponse>> getActiveSession() {
+        return ResponseEntity.ok(ApiResponse.success(focusSessionService.getActiveSession()));
+    }
 }

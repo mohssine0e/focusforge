@@ -60,7 +60,12 @@ const formatTime = (date: string) => (
   new Date(date).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })
 );
 
-const DashboardPage: React.FC = () => {
+interface DashboardPageProps {
+  userName?: string;
+  analyticsMode?: boolean;
+}
+
+const DashboardPage: React.FC<DashboardPageProps> = ({ userName = 'Developer', analyticsMode = false }) => {
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [projectRows, setProjectRows] = useState<ProjectProgressRow[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -158,11 +163,13 @@ const DashboardPage: React.FC = () => {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Welcome back, John</h1>
-          <p className="mt-2 text-sm text-[#8a94a6]">Here is what is happening with your projects today.</p>
+          <h1 className="text-2xl font-semibold text-white">{analyticsMode ? 'Analytics' : `Welcome back, ${userName}`}</h1>
+          <p className="mt-2 text-sm text-[#8a94a6]">
+            {analyticsMode ? 'Project, workload, and focus trends from your private workspace.' : 'Here is what is happening with your projects today.'}
+          </p>
         </div>
         <div className="hidden rounded-full border border-[#223047] bg-[#101827] px-4 py-2 text-xs text-[#8a94a6] lg:block">
-          Demo workspace seeded for a full dashboard preview
+          Live data scoped to your account
         </div>
       </div>
 

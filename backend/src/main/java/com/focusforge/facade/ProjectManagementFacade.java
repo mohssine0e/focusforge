@@ -4,23 +4,23 @@ import com.focusforge.service.ProjectService;
 import com.focusforge.service.TaskService;
 import com.focusforge.service.WorkspaceService;
 import com.focusforge.service.TaskStateService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ProjectManagementFacade {
 
-    @Autowired
-    private ProjectService projectService;
+    private final ProjectService projectService;
+    private final TaskService taskService;
+    private final WorkspaceService workspaceService;
+    private final TaskStateService taskStateService;
 
-    @Autowired
-    private TaskService taskService;
-
-    @Autowired
-    private WorkspaceService workspaceService;
-
-    @Autowired
-    private TaskStateService taskStateService;
+    public ProjectManagementFacade(ProjectService projectService, TaskService taskService,
+                                   WorkspaceService workspaceService, TaskStateService taskStateService) {
+        this.projectService = projectService;
+        this.taskService = taskService;
+        this.workspaceService = workspaceService;
+        this.taskStateService = taskStateService;
+    }
 
     // Add methods to coordinate operations between services
 

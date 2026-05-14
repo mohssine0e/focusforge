@@ -23,6 +23,16 @@ const ProjectList: React.FunctionComponent<{ workspaceId: number }> = ({ workspa
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editProject, setEditProject] = useState<CreateProjectRequest>({
+    name: '',
+    description: '',
+    status: 'PLANNED',
+    priority: 'MEDIUM',
+    startDate: '',
+    dueDate: '',
+  });
   const [newProject, setNewProject] = useState<CreateProjectRequest>({
     name: '',
     description: '',
@@ -81,19 +91,48 @@ const ProjectList: React.FunctionComponent<{ workspaceId: number }> = ({ workspa
   };
 
   const handleDelete = async (projectId: number) => {
-    if (!window.confirm('Delete this project and its tasks?')) {
-      return;
-    }
-
     try {
       setDeletingId(projectId);
       await projectApi.deleteProject(projectId);
+      setConfirmDeleteId(null);
       await fetchProjects();
     } catch (err) {
       setError('Failed to delete project');
       console.error(err);
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const startEdit = (project: Project) => {
+    setEditingId(project.id);
+    setEditProject({
+      name: project.name,
+      description: project.description ?? '',
+      status: project.status,
+      priority: project.priority,
+      startDate: project.startDate ? project.startDate.slice(0, 16) : '',
+      dueDate: project.dueDate ? project.dueDate.slice(0, 16) : '',
+    });
+    setFormError(null);
+  };
+
+  const handleUpdate = async (projectId: number) => {
+    if (!editProject.name.trim()) {
+      setFormError('Project name is required.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await projectApi.updateProject(projectId, editProject);
+      setEditingId(null);
+      await fetchProjects();
+    } catch (err) {
+      setFormError('Failed to update project');
+      console.error(err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -176,31 +215,84 @@ const ProjectList: React.FunctionComponent<{ workspaceId: number }> = ({ workspa
       <div className="grid gap-4 md:grid-cols-2">
         {projects.map((project) => (
           <div key={project.id} className="project-item rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-semibold text-white">{project.name}</h3>
-                <p className="mt-2 text-sm text-[#8b8ba0]">{project.description || 'No description provided.'}</p>
+            {editingId === project.id ? (
+              <div className="space-y-3">
+                <input className="w-full rounded-md border border-[#2e2e45] bg-[#0f0f13] px-3 py-2 text-[#f0f0f5]" value={editProject.name} onChange={(event) => setEditProject({ ...editProject, name: event.target.value })} />
+                <textarea className="w-full rounded-md border border-[#2e2e45] bg-[#0f0f13] px-3 py-2 text-[#f0f0f5]" value={editProject.description} onChange={(event) => setEditProject({ ...editProject, description: event.target.value })} />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <select className="rounded-md border border-[#2e2e45] bg-[#0f0f13] px-3 py-2 text-[#f0f0f5]" value={editProject.status} onChange={(event) => setEditProject({ ...editProject, status: event.target.value })}>
+                    <option value="PLANNED">Planned</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="ON_HOLD">On Hold</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="ARCHIVED">Archived</option>
+                  </select>
+                  <select className="rounded-md border border-[#2e2e45] bg-[#0f0f13] px-3 py-2 text-[#f0f0f5]" value={editProject.priority} onChange={(event) => setEditProject({ ...editProject, priority: event.target.value })}>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent</option>
+                  </select>
+                </div>
               </div>
-              <div className="flex flex-col items-end gap-2 text-xs font-semibold uppercase tracking-wide">
-                <span className="rounded-full bg-[#7c6ef7]/10 px-2 py-1 text-[#bdb7ff]">{project.status}</span>
-                <span className="rounded-full bg-[#f0a500]/10 px-2 py-1 text-[#ffd27a]">{project.priority}</span>
+            ) : (
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{project.name}</h3>
+                  <p className="mt-2 text-sm text-[#8b8ba0]">{project.description || 'No description provided.'}</p>
+                </div>
+                <div className="flex flex-col items-end gap-2 text-xs font-semibold uppercase tracking-wide">
+                  <span className="rounded-full bg-[#7c6ef7]/10 px-2 py-1 text-[#bdb7ff]">{project.status}</span>
+                  <span className="rounded-full bg-[#f0a500]/10 px-2 py-1 text-[#ffd27a]">{project.priority}</span>
+                </div>
               </div>
-            </div>
+            )}
             <div className="mt-4 flex gap-2">
-              <Link
-                className="rounded-md bg-[#7c6ef7] px-3 py-2 text-sm font-medium text-white hover:bg-[#6c5ee0]"
-                to={`/projects/${project.id}`}
-              >
-                Open project
-              </Link>
-              <button
-                className="rounded-md border border-red-500/40 px-3 py-2 text-sm text-red-200 hover:bg-red-500/10"
-                disabled={deletingId === project.id}
-                onClick={() => handleDelete(project.id)}
-                type="button"
-              >
-                {deletingId === project.id ? 'Deleting...' : 'Delete'}
-              </button>
+              {editingId === project.id ? (
+                <>
+                  <button className="rounded-md bg-[#7c6ef7] px-3 py-2 text-sm font-medium text-white hover:bg-[#6c5ee0]" disabled={submitting} onClick={() => handleUpdate(project.id)} type="button">
+                    Save
+                  </button>
+                  <button className="rounded-md border border-[#2e2e45] px-3 py-2 text-sm text-[#f0f0f5] hover:bg-[#22223a]" disabled={submitting} onClick={() => setEditingId(null)} type="button">
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    className="rounded-md bg-[#7c6ef7] px-3 py-2 text-sm font-medium text-white hover:bg-[#6c5ee0]"
+                    to={`/projects/${project.id}`}
+                  >
+                    Open project
+                  </Link>
+                  <button className="rounded-md border border-[#2e2e45] px-3 py-2 text-sm text-[#f0f0f5] hover:bg-[#22223a]" onClick={() => startEdit(project)} type="button">
+                    Edit
+                  </button>
+                  {confirmDeleteId === project.id ? (
+                    <>
+                      <button
+                        className="rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:bg-red-400"
+                        disabled={deletingId === project.id}
+                        onClick={() => handleDelete(project.id)}
+                        type="button"
+                      >
+                        {deletingId === project.id ? 'Deleting...' : 'Confirm delete'}
+                      </button>
+                      <button className="rounded-md border border-[#2e2e45] px-3 py-2 text-sm text-[#f0f0f5] hover:bg-[#22223a]" onClick={() => setConfirmDeleteId(null)} type="button">
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="rounded-md border border-red-500/40 px-3 py-2 text-sm text-red-200 hover:bg-red-500/10"
+                      onClick={() => setConfirmDeleteId(project.id)}
+                      type="button"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         ))}

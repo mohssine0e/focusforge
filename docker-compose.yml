@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: focusforge-postgres
+    environment:
+      POSTGRES_DB: focusforge
+      POSTGRES_USER: mohssine
+      POSTGRES_PASSWORD: mohssine
+    ports:
+      - "5432:5432"
+    volumes:
+      - focusforge-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mohssine -d focusforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  focusforge-postgres-data:

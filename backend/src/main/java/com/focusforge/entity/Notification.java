@@ -4,6 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +29,10 @@ public class Notification extends BaseEntity {
     @Column(name = "is_read", nullable = false)
     private boolean read;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private AppUser owner;
+
     public Notification() {
         super();
     }
@@ -33,6 +40,13 @@ public class Notification extends BaseEntity {
     public Notification(String message, NotificationType type) {
         this.message = message;
         this.type = type;
+        this.read = false;
+    }
+
+    public Notification(String message, NotificationType type, AppUser owner) {
+        this.message = message;
+        this.type = type;
+        this.owner = owner;
         this.read = false;
     }
 
@@ -58,5 +72,13 @@ public class Notification extends BaseEntity {
 
     public void setRead(boolean read) {
         this.read = read;
+    }
+
+    public AppUser getOwner() {
+        return owner;
+    }
+
+    public void setOwner(AppUser owner) {
+        this.owner = owner;
     }
 }

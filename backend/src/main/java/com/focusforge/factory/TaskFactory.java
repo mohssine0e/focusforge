@@ -7,6 +7,8 @@ import com.focusforge.entity.TaskType;
 
 import java.time.LocalDateTime;
 
+//cette patern de factory est utilisée pour centraliser la création d'instances de Task,
+//  en fournissant des méthodes statiques pour créer des tâches avec différentes configurations, ce qui facilite la maintenance et la cohérence du code.
 public class TaskFactory {
 
     public static Task createTask(String title, String description, Project project) {
@@ -24,6 +26,19 @@ public class TaskFactory {
         Task task = createTask(title, description, project);
         task.setType(type);
         setDefaultEstimate(task, type);
+        return task;
+    }
+
+    public static Task createTask(String title, String description, Project project, TaskType type,
+            TaskStatus status, Priority priority, LocalDateTime dueDate,
+            Integer estimatedMinutes) {
+        Task task = createTask(title, description, project, type);
+        task.setStatus(status == null ? TaskStatus.TODO : status);
+        task.setPriority(priority == null ? Priority.MEDIUM : priority);
+        task.setDueDate(dueDate);
+        if (estimatedMinutes != null) {
+            task.setEstimatedMinutes(estimatedMinutes);
+        }
         return task;
     }
 

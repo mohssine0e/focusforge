@@ -1,5 +1,6 @@
 package com.focusforge.config;
 
+import com.focusforge.entity.AppUser;
 import com.focusforge.entity.FocusSession;
 import com.focusforge.entity.FocusSessionType;
 import com.focusforge.entity.Notification;
@@ -11,12 +12,14 @@ import com.focusforge.entity.Task;
 import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
 import com.focusforge.entity.Workspace;
+import com.focusforge.repository.AppUserRepository;
 import com.focusforge.repository.FocusSessionRepository;
 import com.focusforge.repository.NotificationRepository;
 import com.focusforge.repository.ProjectRepository;
 import com.focusforge.repository.TaskRepository;
 import com.focusforge.repository.WorkspaceRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,36 +32,50 @@ import java.util.List;
 public class DemoDataSeeder implements CommandLineRunner {
 
     private static final String DEMO_WORKSPACE_NAME = "FocusForge Demo";
+    private static final String DEMO_EMAIL = "demo@focusforge.dev";
     private static final Logger log = LoggerFactory.getLogger(DemoDataSeeder.class);
 
+    private final AppUserRepository appUserRepository;
     private final WorkspaceRepository workspaceRepository;
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
     private final FocusSessionRepository focusSessionRepository;
     private final NotificationRepository notificationRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public DemoDataSeeder(WorkspaceRepository workspaceRepository,
+    public DemoDataSeeder(AppUserRepository appUserRepository,
+                          WorkspaceRepository workspaceRepository,
                           ProjectRepository projectRepository,
                           TaskRepository taskRepository,
                           FocusSessionRepository focusSessionRepository,
-                          NotificationRepository notificationRepository) {
+                          NotificationRepository notificationRepository,
+                          PasswordEncoder passwordEncoder) {
+        this.appUserRepository = appUserRepository;
         this.workspaceRepository = workspaceRepository;
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
         this.focusSessionRepository = focusSessionRepository;
         this.notificationRepository = notificationRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
-        if (workspaceRepository.existsByName(DEMO_WORKSPACE_NAME)) {
+        AppUser owner = appUserRepository.findByEmailIgnoreCase(DEMO_EMAIL)
+                .orElseGet(() -> appUserRepository.save(new AppUser(
+                        "John Developer",
+                        DEMO_EMAIL,
+                        passwordEncoder.encode("focusforge"))));
+
+        if (workspaceRepository.existsByNameAndOwnerId(DEMO_WORKSPACE_NAME, owner.getId())) {
             log.info("Demo data already exists");
             return;
         }
 
         Workspace workspace = workspaceRepository.save(new Workspace(
                 DEMO_WORKSPACE_NAME,
-                "Seeded workspace for a rich FocusForge dashboard and project demo."
+                "Seeded workspace for a rich FocusForge dashboard and project demo.",
+                owner
         ));
 
         List<Project> projects = projectRepository.saveAll(List.of(
@@ -103,7 +120,7 @@ public class DemoDataSeeder implements CommandLineRunner {
 
         List<Task> savedTasks = taskRepository.saveAll(tasks);
         seedFocusSessions(savedTasks);
-        seedNotifications();
+        seedNotifications(owner);
         log.info("Seeded FocusForge demo data");
     }
 
@@ -144,13 +161,13 @@ public class DemoDataSeeder implements CommandLineRunner {
         focusSessionRepository.saveAll(sessions);
     }
 
-    private void seedNotifications() {
+    private void seedNotifications(AppUser owner) {
         List<Notification> notifications = List.of(
-                new Notification("Backend API Integration moved to IN_PROGRESS", NotificationType.TASK_UPDATED),
-                new Notification("UI/UX Design System is due soon", NotificationType.DEADLINE_WARNING),
-                new Notification("Submit lab report is blocked by unfinished work", NotificationType.TASK_BLOCKED),
-                new Notification("Controller smoke tests completed", NotificationType.TASK_COMPLETED),
-                new Notification("Data Structures Assignment is due tomorrow", NotificationType.DEADLINE_WARNING)
+                new Notification("Backend API Integration moved to IN_PROGRESS", NotificationType.TASK_UPDATED, owner),
+                new Notification("UI/UX Design System is due soon", NotificationType.DEADLINE_WARNING, owner),
+                new Notification("Submit lab report is blocked by unfinished work", NotificationType.TASK_BLOCKED, owner),
+                new Notification("Controller smoke tests completed", NotificationType.TASK_COMPLETED, owner),
+                new Notification("Data Structures Assignment is due tomorrow", NotificationType.DEADLINE_WARNING, owner)
         );
         notificationRepository.saveAll(notifications);
     }

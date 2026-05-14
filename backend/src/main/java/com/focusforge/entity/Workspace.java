@@ -17,6 +17,10 @@ public class Workspace extends BaseEntity {
     @Column(name = "description")
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private AppUser owner;
+
     // Constructors
     public Workspace() {
         super();
@@ -25,6 +29,12 @@ public class Workspace extends BaseEntity {
     public Workspace(String name, String description) {
         this.name = name;
         this.description = description;
+    }
+
+    public Workspace(String name, String description, AppUser owner) {
+        this.name = name;
+        this.description = description;
+        this.owner = owner;
     }
 
     // Getters and Setters
@@ -42,6 +52,14 @@ public class Workspace extends BaseEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public AppUser getOwner() {
+        return owner;
+    }
+
+    public void setOwner(AppUser owner) {
+        this.owner = owner;
     }
 
     @Override

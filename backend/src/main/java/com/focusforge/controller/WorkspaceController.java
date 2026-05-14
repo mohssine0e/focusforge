@@ -5,7 +5,6 @@ import com.focusforge.dto.WorkspaceRequest;
 import com.focusforge.dto.WorkspaceResponse;
 import com.focusforge.service.WorkspaceService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +16,6 @@ public class WorkspaceController {
 
     private final WorkspaceService workspaceService;
 
-    @Autowired
     public WorkspaceController(WorkspaceService workspaceService) {
         this.workspaceService = workspaceService;
     }

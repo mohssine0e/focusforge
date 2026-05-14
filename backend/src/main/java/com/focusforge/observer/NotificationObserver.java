@@ -6,6 +6,9 @@ import com.focusforge.entity.TaskStatus;
 import com.focusforge.service.NotificationService;
 import org.springframework.stereotype.Component;
 
+// cette pattern d'observer est utilisée pour réagir aux changements de statut des tâches,
+//  en créant des notifications appropriées pour les utilisateurs concernés, 
+//  ce qui améliore l'engagement et la réactivité de l'application.
 @Component
 public class NotificationObserver implements TaskObserver {
 
@@ -22,7 +25,7 @@ public class NotificationObserver implements TaskObserver {
         String message = "Task '" + task.getTitle() + "' moved from "
                 + event.getPreviousStatus() + " to " + event.getNewStatus();
 
-        notificationService.createNotification(message, type);
+        notificationService.createNotification(message, type, task.getProject().getWorkspace().getOwner());
     }
 
     private NotificationType resolveNotificationType(TaskStatus status) {

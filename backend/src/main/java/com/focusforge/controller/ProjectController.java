@@ -5,7 +5,6 @@ import com.focusforge.dto.ProjectRequest;
 import com.focusforge.dto.ProjectResponse;
 import com.focusforge.service.ProjectService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +16,6 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
-    @Autowired
     public ProjectController(ProjectService projectService) {
         this.projectService = projectService;
     }

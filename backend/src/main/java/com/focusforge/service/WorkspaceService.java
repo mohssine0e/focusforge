@@ -2,11 +2,10 @@ package com.focusforge.service;
 
 import com.focusforge.entity.Workspace;
 import com.focusforge.exception.ResourceNotFoundException;
-import com.focusforge.exception.ValidationException;
 import com.focusforge.repository.WorkspaceRepository;
 import com.focusforge.dto.WorkspaceRequest;
 import com.focusforge.dto.WorkspaceResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.focusforge.security.CurrentUserService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,13 +14,19 @@ import java.util.stream.Collectors;
 @Service
 public class WorkspaceService {
 
-    @Autowired
-    private WorkspaceRepository workspaceRepository;
+    private final WorkspaceRepository workspaceRepository;
+    private final CurrentUserService currentUserService;
+
+    public WorkspaceService(WorkspaceRepository workspaceRepository, CurrentUserService currentUserService) {
+        this.workspaceRepository = workspaceRepository;
+        this.currentUserService = currentUserService;
+    }
 
     public WorkspaceResponse createWorkspace(WorkspaceRequest request) {
         Workspace workspace = new Workspace();
         workspace.setName(request.getName());
         workspace.setDescription(request.getDescription());
+        workspace.setOwner(currentUserService.getCurrentUser());
 
         Workspace saved = workspaceRepository.save(workspace);
         return new WorkspaceResponse(
@@ -34,7 +39,7 @@ public class WorkspaceService {
     }
 
     public List<WorkspaceResponse> getAllWorkspaces() {
-        return workspaceRepository.findAll().stream()
+        return workspaceRepository.findByOwnerIdOrderByCreatedAtDesc(currentUserService.getCurrentUser().getId()).stream()
                 .map(workspace -> new WorkspaceResponse(
                         workspace.getId(),
                         workspace.getName(),
@@ -45,7 +50,7 @@ public class WorkspaceService {
     }
 
     public WorkspaceResponse getWorkspaceById(Long id) {
-        Workspace workspace = workspaceRepository.findById(id)
+        Workspace workspace = workspaceRepository.findByIdAndOwnerId(id, currentUserService.getCurrentUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace", id));
         return new WorkspaceResponse(
                 workspace.getId(),
@@ -57,7 +62,7 @@ public class WorkspaceService {
     }
 
     public WorkspaceResponse updateWorkspace(Long id, WorkspaceRequest request) {
-        Workspace workspace = workspaceRepository.findById(id)
+        Workspace workspace = workspaceRepository.findByIdAndOwnerId(id, currentUserService.getCurrentUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace", id));
         workspace.setName(request.getName());
         workspace.setDescription(request.getDescription());
@@ -72,9 +77,11 @@ public class WorkspaceService {
     }
 
     public void deleteWorkspace(Long id) {
-        if (!workspaceRepository.existsById(id)) {
+        Workspace workspace = workspaceRepository.findByIdAndOwnerId(id, currentUserService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace", id));
+        if (workspace.getId() == null) {
             throw new ResourceNotFoundException("Workspace", id);
         }
-        workspaceRepository.deleteById(id);
+        workspaceRepository.delete(workspace);
     }
 }

@@ -12,6 +12,7 @@ import com.focusforge.repository.FocusSessionRepository;
 import com.focusforge.repository.ProjectRepository;
 import com.focusforge.repository.TaskRepository;
 import com.focusforge.repository.WorkspaceRepository;
+import com.focusforge.security.CurrentUserService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -29,28 +30,32 @@ public class AnalyticsService {
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
     private final FocusSessionRepository focusSessionRepository;
+    private final CurrentUserService currentUserService;
 
     public AnalyticsService(WorkspaceRepository workspaceRepository, ProjectRepository projectRepository,
-                            TaskRepository taskRepository, FocusSessionRepository focusSessionRepository) {
+                            TaskRepository taskRepository, FocusSessionRepository focusSessionRepository,
+                            CurrentUserService currentUserService) {
         this.workspaceRepository = workspaceRepository;
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
         this.focusSessionRepository = focusSessionRepository;
+        this.currentUserService = currentUserService;
     }
 
     public AnalyticsOverviewResponse getOverview() {
-        List<Task> tasks = taskRepository.findAll();
+        Long ownerId = currentUserService.getCurrentUser().getId();
+        List<Task> tasks = taskRepository.findByProjectWorkspaceOwnerId(ownerId);
         LocalDate today = LocalDate.now();
         LocalDate weekEnd = today.plusDays(7);
         LocalDateTime now = LocalDateTime.now();
-        long totalFocusMinutes = focusSessionRepository.findAll()
+        long totalFocusMinutes = focusSessionRepository.findByTaskProjectWorkspaceOwnerIdOrderByStartTimeDesc(ownerId)
                 .stream()
                 .mapToLong(this::durationMinutes)
                 .sum();
 
         return new AnalyticsOverviewResponse(
-                workspaceRepository.count(),
-                projectRepository.count(),
+                workspaceRepository.findByOwnerIdOrderByCreatedAtDesc(ownerId).size(),
+                projectRepository.countByWorkspaceOwnerId(ownerId),
                 tasks.size(),
                 countBy(tasks, Task::getStatus),
                 countBy(tasks, Task::getPriority),
@@ -65,11 +70,12 @@ public class AnalyticsService {
     }
 
     public ProjectAnalyticsResponse getProjectAnalytics(Long projectId) {
-        Project project = projectRepository.findById(projectId)
+        Long ownerId = currentUserService.getCurrentUser().getId();
+        Project project = projectRepository.findByIdAndWorkspaceOwnerId(projectId, ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", projectId));
-        List<Task> tasks = taskRepository.findByProjectId(projectId);
+        List<Task> tasks = taskRepository.findByProjectIdAndProjectWorkspaceOwnerId(projectId, ownerId);
         Set<Long> taskIds = tasks.stream().map(Task::getId).collect(Collectors.toSet());
-        long totalFocusMinutes = focusSessionRepository.findAll()
+        long totalFocusMinutes = focusSessionRepository.findByTaskProjectWorkspaceOwnerIdOrderByStartTimeDesc(ownerId)
                 .stream()
                 .filter(session -> taskIds.contains(session.getTask().getId()))
                 .mapToLong(this::durationMinutes)

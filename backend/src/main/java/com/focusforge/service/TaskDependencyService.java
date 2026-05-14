@@ -6,6 +6,7 @@ import com.focusforge.entity.TaskDependency;
 import com.focusforge.exception.ResourceNotFoundException;
 import com.focusforge.repository.TaskDependencyRepository;
 import com.focusforge.repository.TaskRepository;
+import com.focusforge.security.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +20,13 @@ public class TaskDependencyService {
 
     private final TaskDependencyRepository taskDependencyRepository;
     private final TaskRepository taskRepository;
+    private final CurrentUserService currentUserService;
 
-    public TaskDependencyService(TaskDependencyRepository taskDependencyRepository, TaskRepository taskRepository) {
+    public TaskDependencyService(TaskDependencyRepository taskDependencyRepository, TaskRepository taskRepository,
+                                 CurrentUserService currentUserService) {
         this.taskDependencyRepository = taskDependencyRepository;
         this.taskRepository = taskRepository;
+        this.currentUserService = currentUserService;
     }
 
     public TaskDependencyResponse addDependency(Long taskId, Long dependsOnTaskId) {
@@ -86,7 +90,7 @@ public class TaskDependencyService {
     }
 
     private Task findTask(Long taskId) {
-        return taskRepository.findById(taskId)
+        return taskRepository.findByIdAndProjectWorkspaceOwnerId(taskId, currentUserService.getCurrentUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Task", taskId));
     }
 

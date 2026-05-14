@@ -38,24 +38,12 @@ class TaskApi {
   }
 
   async createTask(projectId: number, taskData: TaskRequest): Promise<Task> {
-    const response = await httpClient.post(`/api/projects/${projectId}/tasks`, null, {
-      params: {
-        title: taskData.title,
-        description: taskData.description,
-        type: taskData.type,
-      },
-    });
+    const response = await httpClient.post(`/api/projects/${projectId}/tasks`, normalizeTask(taskData));
     return response.data;
   }
 
   async updateTask(id: number, taskData: TaskRequest): Promise<Task> {
-    const response = await httpClient.put(`/api/tasks/${id}`, null, {
-      params: {
-        title: taskData.title,
-        description: taskData.description,
-        type: taskData.type,
-      },
-    });
+    const response = await httpClient.put(`/api/tasks/${id}`, normalizeTask(taskData));
     return response.data;
   }
 
@@ -86,3 +74,9 @@ class TaskApi {
 }
 
 export const taskApi = new TaskApi();
+
+const normalizeTask = (task: TaskRequest) => ({
+  ...task,
+  dueDate: task.dueDate || null,
+  estimatedMinutes: task.estimatedMinutes || null,
+});

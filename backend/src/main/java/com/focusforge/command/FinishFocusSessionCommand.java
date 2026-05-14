@@ -2,7 +2,6 @@ package com.focusforge.command;
 
 import com.focusforge.dto.FocusSessionResponse;
 import com.focusforge.entity.FocusSession;
-import com.focusforge.exception.ResourceNotFoundException;
 import com.focusforge.repository.FocusSessionRepository;
 
 import java.time.LocalDateTime;
@@ -11,11 +10,11 @@ import java.time.temporal.ChronoUnit;
 public class FinishFocusSessionCommand implements FocusSessionCommand {
 
     private final FocusSessionRepository focusSessionRepository;
-    private final Long sessionId;
+    private final FocusSession focusSession;
 
-    public FinishFocusSessionCommand(FocusSessionRepository focusSessionRepository, Long sessionId) {
+    public FinishFocusSessionCommand(FocusSessionRepository focusSessionRepository, FocusSession focusSession) {
         this.focusSessionRepository = focusSessionRepository;
-        this.sessionId = sessionId;
+        this.focusSession = focusSession;
     }
 
     @Override
@@ -30,18 +29,15 @@ public class FinishFocusSessionCommand implements FocusSessionCommand {
 
     @Override
     public String getHistoryEntry() {
-        return "Finished focus session " + sessionId;
+        return "Finished focus session " + focusSession.getId();
     }
 
     private FocusSession findActiveSession() {
-        FocusSession session = focusSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("FocusSession", sessionId));
-
-        if (session.getEndTime() != null) {
+        if (focusSession.getEndTime() != null) {
             throw new IllegalArgumentException("Focus session is already closed");
         }
 
-        return session;
+        return focusSession;
     }
 
     private int calculateDurationMinutes(LocalDateTime startTime, LocalDateTime endTime) {

@@ -59,16 +59,25 @@ const ProjectDetailPage: React.FC = () => {
   const [creatingTask, setCreatingTask] = useState(false);
   const [updatingTask, setUpdatingTask] = useState(false);
   const [deletingTaskId, setDeletingTaskId] = useState<number | null>(null);
+  const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState<number | null>(null);
   const [newTask, setNewTask] = useState<TaskRequest>({
     title: '',
     description: '',
-    type: 'STUDY'
+    type: 'STUDY',
+    priority: 'MEDIUM',
+    status: 'TODO',
+    dueDate: '',
+    estimatedMinutes: 60,
   });
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editTask, setEditTask] = useState<TaskRequest>({
     title: '',
     description: '',
     type: 'STUDY',
+    priority: 'MEDIUM',
+    status: 'TODO',
+    dueDate: '',
+    estimatedMinutes: 60,
   });
 
   const fetchProject = useCallback(async (projectId: number) => {
@@ -144,7 +153,11 @@ const ProjectDetailPage: React.FC = () => {
       setNewTask({
         title: '',
         description: '',
-        type: 'STUDY'
+        type: 'STUDY',
+        priority: 'MEDIUM',
+        status: 'TODO',
+        dueDate: '',
+        estimatedMinutes: 60,
       });
       await fetchRecommendedTask(parseInt(id), recommendationStrategy);
     } catch (err) {
@@ -209,6 +222,10 @@ const ProjectDetailPage: React.FC = () => {
       title: task.title,
       description: task.description ?? '',
       type: task.type,
+      priority: task.priority,
+      status: task.status,
+      dueDate: task.dueDate ? task.dueDate.slice(0, 16) : '',
+      estimatedMinutes: task.estimatedMinutes ?? 60,
     });
   };
 
@@ -239,12 +256,11 @@ const ProjectDetailPage: React.FC = () => {
   };
 
   const handleDeleteTask = async (taskId: number) => {
-    if (!window.confirm('Delete this task?')) return;
-
     try {
       setDeletingTaskId(taskId);
       await taskApi.deleteTask(taskId);
       setTasks(tasks.filter((task) => task.id !== taskId));
+      setConfirmDeleteTaskId(null);
       if (id) {
         await fetchRecommendedTask(parseInt(id), recommendationStrategy);
       }
@@ -319,6 +335,32 @@ const ProjectDetailPage: React.FC = () => {
               <option value="RESEARCH">Research</option>
               <option value="ADMIN">Admin</option>
             </select>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <select
+                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+                value={newTask.priority}
+                onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as TaskRequest['priority'] })}
+              >
+                <option value="LOW">Low priority</option>
+                <option value="MEDIUM">Medium priority</option>
+                <option value="HIGH">High priority</option>
+                <option value="URGENT">Urgent priority</option>
+              </select>
+              <input
+                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+                min={1}
+                type="number"
+                value={newTask.estimatedMinutes ?? ''}
+                onChange={(e) => setNewTask({ ...newTask, estimatedMinutes: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="Estimate minutes"
+              />
+            </div>
+            <input
+              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+              type="datetime-local"
+              value={newTask.dueDate ?? ''}
+              onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+            />
             {taskFormError && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">{taskFormError}</p>}
             <button
               className="w-full rounded-md bg-cyan-400 px-4 py-2 font-medium text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
@@ -431,6 +473,31 @@ const ProjectDetailPage: React.FC = () => {
                       <option value="RESEARCH">Research</option>
                       <option value="ADMIN">Admin</option>
                     </select>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <select
+                        className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+                        value={editTask.priority}
+                        onChange={(e) => setEditTask({ ...editTask, priority: e.target.value as TaskRequest['priority'] })}
+                      >
+                        <option value="LOW">Low priority</option>
+                        <option value="MEDIUM">Medium priority</option>
+                        <option value="HIGH">High priority</option>
+                        <option value="URGENT">Urgent priority</option>
+                      </select>
+                      <input
+                        className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+                        min={1}
+                        type="number"
+                        value={editTask.estimatedMinutes ?? ''}
+                        onChange={(e) => setEditTask({ ...editTask, estimatedMinutes: e.target.value ? Number(e.target.value) : undefined })}
+                      />
+                    </div>
+                    <input
+                      className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+                      type="datetime-local"
+                      value={editTask.dueDate ?? ''}
+                      onChange={(e) => setEditTask({ ...editTask, dueDate: e.target.value })}
+                    />
                     {editFormError && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">{editFormError}</p>}
                     <div className="flex gap-2">
                       <button
@@ -576,14 +643,34 @@ const ProjectDetailPage: React.FC = () => {
                       >
                         Edit
                       </button>
-                      <button
-                        className="rounded-md border border-red-500/40 px-3 py-2 text-sm text-red-200 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={deletingTaskId === task.id}
-                        onClick={() => handleDeleteTask(task.id)}
-                        type="button"
-                      >
-                        {deletingTaskId === task.id ? 'Deleting...' : 'Delete'}
-                      </button>
+                      {confirmDeleteTaskId === task.id ? (
+                        <>
+                          <button
+                            className="rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={deletingTaskId === task.id}
+                            onClick={() => handleDeleteTask(task.id)}
+                            type="button"
+                          >
+                            {deletingTaskId === task.id ? 'Deleting...' : 'Confirm delete'}
+                          </button>
+                          <button
+                            className="rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800"
+                            onClick={() => setConfirmDeleteTaskId(null)}
+                            type="button"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className="rounded-md border border-red-500/40 px-3 py-2 text-sm text-red-200 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={deletingTaskId === task.id}
+                          onClick={() => setConfirmDeleteTaskId(task.id)}
+                          type="button"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </>
                 )}

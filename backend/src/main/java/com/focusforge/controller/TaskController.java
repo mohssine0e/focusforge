@@ -2,12 +2,12 @@ package com.focusforge.controller;
 
 import com.focusforge.decorator.TaskResponseDecorator;
 import com.focusforge.dto.ApiResponse;
+import com.focusforge.dto.TaskRequest;
 import com.focusforge.dto.TaskResponse;
 import com.focusforge.entity.Task;
 import com.focusforge.entity.TaskStatus;
-import com.focusforge.entity.TaskType;
 import com.focusforge.service.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +22,6 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskResponseDecorator taskResponseDecorator;
 
-    @Autowired
     public TaskController(TaskService taskService, TaskResponseDecorator taskResponseDecorator) {
         this.taskService = taskService;
         this.taskResponseDecorator = taskResponseDecorator;
@@ -49,10 +48,8 @@ public class TaskController {
     @PostMapping("/projects/{projectId}/tasks")
     public ResponseEntity<ApiResponse<TaskResponse>> createTask(
             @PathVariable Long projectId,
-            @RequestParam String title,
-            @RequestParam String description,
-            @RequestParam TaskType type) {
-        Task task = taskService.createTask(projectId, title, description, type);
+            @Valid @RequestBody TaskRequest request) {
+        Task task = taskService.createTask(projectId, request);
         ApiResponse<TaskResponse> response = ApiResponse.success(taskResponseDecorator.decorate(task), "Task created successfully");
         return ResponseEntity.ok(response);
     }
@@ -78,10 +75,8 @@ public class TaskController {
     @PutMapping("/tasks/{id}")
     public ResponseEntity<ApiResponse<TaskResponse>> updateTask(
             @PathVariable Long id,
-            @RequestParam String title,
-            @RequestParam String description,
-            @RequestParam TaskType type) {
-        Task task = taskService.updateTask(id, title, description, type);
+            @Valid @RequestBody TaskRequest request) {
+        Task task = taskService.updateTask(id, request);
         ApiResponse<TaskResponse> response = ApiResponse.success(taskResponseDecorator.decorate(task), "Task updated successfully");
         return ResponseEntity.ok(response);
     }

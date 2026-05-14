@@ -8,7 +8,7 @@ import com.focusforge.repository.WorkspaceRepository;
 import com.focusforge.dto.ProjectRequest;
 import com.focusforge.dto.ProjectResponse;
 import com.focusforge.builder.ProjectBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.focusforge.security.CurrentUserService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,14 +17,19 @@ import java.util.stream.Collectors;
 @Service
 public class ProjectService {
 
-    @Autowired
-    private ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository;
+    private final WorkspaceRepository workspaceRepository;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private WorkspaceRepository workspaceRepository;
+    public ProjectService(ProjectRepository projectRepository, WorkspaceRepository workspaceRepository,
+                          CurrentUserService currentUserService) {
+        this.projectRepository = projectRepository;
+        this.workspaceRepository = workspaceRepository;
+        this.currentUserService = currentUserService;
+    }
 
     public ProjectResponse createProject(Long workspaceId, ProjectRequest request) {
-        Workspace workspace = workspaceRepository.findById(workspaceId)
+        Workspace workspace = workspaceRepository.findByIdAndOwnerId(workspaceId, currentUserService.getCurrentUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace", workspaceId));
 
         Project project = new ProjectBuilder.Builder()
@@ -53,7 +58,12 @@ public class ProjectService {
     }
 
     public List<ProjectResponse> getProjectsByWorkspace(Long workspaceId) {
-        return projectRepository.findByWorkspaceId(workspaceId).stream()
+        Long ownerId = currentUserService.getCurrentUser().getId();
+        if (workspaceRepository.findByIdAndOwnerId(workspaceId, ownerId).isEmpty()) {
+            throw new ResourceNotFoundException("Workspace", workspaceId);
+        }
+
+        return projectRepository.findByWorkspaceIdAndWorkspaceOwnerId(workspaceId, ownerId).stream()
                 .map(project -> new ProjectResponse(
                         project.getId(),
                         project.getName(),
@@ -70,7 +80,7 @@ public class ProjectService {
     }
 
     public ProjectResponse getProjectById(Long id) {
-        Project project = projectRepository.findById(id)
+        Project project = projectRepository.findByIdAndWorkspaceOwnerId(id, currentUserService.getCurrentUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", id));
         return new ProjectResponse(
                 project.getId(),
@@ -87,7 +97,7 @@ public class ProjectService {
     }
 
     public ProjectResponse updateProject(Long id, ProjectRequest request) {
-        Project project = projectRepository.findById(id)
+        Project project = projectRepository.findByIdAndWorkspaceOwnerId(id, currentUserService.getCurrentUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project", id));
         project.setName(request.getName());
         project.setDescription(request.getDescription());
@@ -111,9 +121,8 @@ public class ProjectService {
     }
 
     public void deleteProject(Long id) {
-        if (!projectRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Project", id);
-        }
-        projectRepository.deleteById(id);
+        Project project = projectRepository.findByIdAndWorkspaceOwnerId(id, currentUserService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Project", id));
+        projectRepository.delete(project);
     }
 }

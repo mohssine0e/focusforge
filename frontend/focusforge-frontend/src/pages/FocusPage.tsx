@@ -66,10 +66,18 @@ const FocusPage: React.FC = () => {
     setSessions(data);
   }, []);
 
+  const loadActiveSession = useCallback(async () => {
+    const session = await focusApi.getActiveSession();
+    setActiveSession(session);
+    if (session) {
+      setSelectedTaskId(session.taskId.toString());
+    }
+  }, []);
+
   const loadFocusData = useCallback(async () => {
     try {
       setLoading(true);
-      await Promise.all([loadTasks(), loadSessions()]);
+      await Promise.all([loadTasks(), loadSessions(), loadActiveSession()]);
       setError(null);
     } catch (err) {
       setError('Failed to load focus data');
@@ -77,7 +85,7 @@ const FocusPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [loadSessions, loadTasks]);
+  }, [loadActiveSession, loadSessions, loadTasks]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

@@ -5,7 +5,7 @@ export type { CreateProjectRequest, Project } from '../types';
 
 class ProjectApi {
   async createProject(workspaceId: number, project: CreateProjectRequest): Promise<Project> {
-    const response = await httpClient.post(`/api/workspaces/${workspaceId}/projects`, project);
+    const response = await httpClient.post(`/api/workspaces/${workspaceId}/projects`, normalizeProject(project));
     return response.data;
   }
 
@@ -20,7 +20,7 @@ class ProjectApi {
   }
 
   async updateProject(id: number, project: CreateProjectRequest): Promise<Project> {
-    const response = await httpClient.put(`/api/projects/${id}`, project);
+    const response = await httpClient.put(`/api/projects/${id}`, normalizeProject(project));
     return response.data;
   }
 
@@ -30,3 +30,9 @@ class ProjectApi {
 }
 
 export const projectApi = new ProjectApi();
+
+const normalizeProject = (project: CreateProjectRequest) => ({
+  ...project,
+  startDate: project.startDate || null,
+  dueDate: project.dueDate || null,
+});

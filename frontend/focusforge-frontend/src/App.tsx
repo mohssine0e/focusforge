@@ -1,22 +1,39 @@
 import { useCallback, useState, useEffect } from 'react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
+import { authApi } from './api/authApi';
 import { notificationApi } from './api/notificationApi';
+import { projectApi } from './api/projectApi';
+import { taskApi } from './api/taskApi';
+import { workspaceApi } from './api/workspaceApi';
+import AuthPage from './pages/AuthPage';
 import CalendarPage from './pages/CalendarPage';
 import DashboardPage from './pages/DashboardPage';
 import FocusPage from './pages/FocusPage';
 import KanbanOverviewPage from './pages/KanbanOverviewPage';
 import KanbanPage from './pages/KanbanPage';
+import NotificationsPage from './pages/NotificationsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import ProjectsPage from './pages/ProjectsPage';
 import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
 import WorkspacePage from './pages/WorkspacePage';
-import type { AppNotification } from './types';
+import type { AppNotification, AppUser, AuthResponse } from './types';
+
+interface SearchResult {
+  label: string;
+  meta: string;
+  to: string;
+}
 
 function App() {
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(() => Boolean(window.localStorage.getItem('focusforge_token')));
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationError, setNotificationError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -30,11 +47,77 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadNotifications();
-  }, [loadNotifications]);
+    const token = window.localStorage.getItem('focusforge_token');
+    if (!token) {
+      return;
+    }
+
+    authApi.me()
+      .then(setUser)
+      .catch(() => window.localStorage.removeItem('focusforge_token'))
+      .finally(() => setAuthLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadNotifications();
+    }
+  }, [loadNotifications, user]);
 
   const unreadNotificationCount = notifications.filter((notification) => !notification.read).length;
+
+  useEffect(() => {
+    if (!user || searchQuery.trim().length < 2) {
+      return;
+    }
+
+    let cancelled = false;
+    const query = searchQuery.trim().toLowerCase();
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const workspaces = await workspaceApi.getWorkspaces();
+        const projectGroups = await Promise.all(
+          workspaces.map(async (workspace) => {
+            const projects = await projectApi.getProjects(workspace.id);
+            return Promise.all(projects.map(async (project) => {
+              const tasks = await taskApi.getTasksByProject(project.id);
+              return { workspace, project, tasks };
+            }));
+          })
+        );
+
+        const results: SearchResult[] = [];
+        workspaces.forEach((workspace) => {
+          if (workspace.name.toLowerCase().includes(query)) {
+            results.push({ label: workspace.name, meta: 'Workspace', to: `/workspaces/${workspace.id}` });
+          }
+        });
+        projectGroups.flat().forEach(({ workspace, project, tasks }) => {
+          if (project.name.toLowerCase().includes(query)) {
+            results.push({ label: project.name, meta: `Project in ${workspace.name}`, to: `/projects/${project.id}` });
+          }
+          tasks.forEach((task) => {
+            if (task.title.toLowerCase().includes(query)) {
+              results.push({ label: task.title, meta: `Task in ${project.name}`, to: `/projects/${project.id}` });
+            }
+          });
+        });
+
+        if (!cancelled) {
+          setSearchResults(results.slice(0, 8));
+          setSearchOpen(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchQuery, user]);
 
   const markNotificationRead = async (notificationId: number) => {
     try {
@@ -66,7 +149,32 @@ function App() {
     { label: 'Calendar', to: '/calendar', icon: 'C' },
     { label: 'Focus Mode', to: '/focus', icon: 'F' },
     { label: 'Analytics', to: '/analytics', icon: 'A' },
+    { label: 'Notifications', to: '/notifications', icon: 'N' },
   ];
+
+  const handleAuthenticated = (auth: AuthResponse) => {
+    window.localStorage.setItem('focusforge_token', auth.token);
+    setUser(auth.user);
+  };
+
+  const logout = () => {
+    window.localStorage.removeItem('focusforge_token');
+    setUser(null);
+    setNotifications([]);
+    setNotificationsOpen(false);
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#050d16] text-sm text-[#8a94a6]">
+        Loading FocusForge...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage onAuthenticated={handleAuthenticated} />;
+  }
 
   const notificationPanel = (
     <div className="absolute right-0 z-30 mt-3 w-96 max-w-[calc(100vw-2rem)] rounded-xl border border-[#223047] bg-[#121a29] p-4 text-left shadow-2xl">
@@ -165,23 +273,13 @@ function App() {
               {item.label}
             </NavLink>
           ))}
-          <button
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-[#a8b0c0] transition hover:bg-[#111c2e] hover:text-white"
-            onClick={() => setNotificationsOpen((open) => !open)}
-            type="button"
-          >
-            <span className="flex h-5 w-5 items-center justify-center text-xs text-[#a78bfa]">N</span>
-            Notifications
-            {unreadNotificationCount > 0 && (
-              <span className="ml-2 rounded-full bg-[#8b5cf6] px-2 py-0.5 text-xs font-bold text-white">
-                {unreadNotificationCount}
-              </span>
-            )}
-          </button>
         </nav>
         <div className="m-3 rounded-xl border border-[#223047] bg-[#0d1728] p-4">
-          <p className="text-sm font-semibold text-white">John Developer</p>
-          <p className="mt-1 text-xs text-[#8a94a6]">Pro Plan</p>
+          <p className="text-sm font-semibold text-white">{user.name}</p>
+          <p className="mt-1 truncate text-xs text-[#8a94a6]">{user.email}</p>
+          <button className="mt-3 text-xs font-semibold text-[#a78bfa] hover:text-[#c4b5fd]" onClick={logout} type="button">
+            Sign out
+          </button>
         </div>
       </aside>
 
@@ -190,12 +288,43 @@ function App() {
           <div className="min-w-0 lg:hidden">
             <h1 className="text-lg font-semibold text-white">FocusForge</h1>
           </div>
-          <div className="hidden flex-1 lg:block">
+          <div className="relative hidden flex-1 lg:block">
             <input
               className="h-9 w-full max-w-sm rounded-lg border border-[#223047] bg-[#07111d] px-3 text-sm text-[#f0f0f5] outline-none placeholder:text-[#69758a] focus:border-[#8b5cf6]"
               placeholder="Search projects, tasks, deadlines..."
               type="search"
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                if (event.target.value.trim().length < 2) {
+                  setSearchResults([]);
+                  setSearchOpen(false);
+                }
+              }}
+              onFocus={() => setSearchOpen(true)}
             />
+            {searchOpen && searchQuery.trim().length >= 2 && (
+              <div className="absolute left-0 z-30 mt-2 w-full max-w-sm rounded-xl border border-[#223047] bg-[#121a29] p-2 shadow-2xl">
+                {searchResults.length === 0 ? (
+                  <p className="px-3 py-4 text-sm text-[#8a94a6]">No matching work found.</p>
+                ) : (
+                  searchResults.map((result) => (
+                    <NavLink
+                      key={`${result.to}-${result.label}`}
+                      className="block rounded-lg px-3 py-2 hover:bg-[#172238]"
+                      onClick={() => {
+                        setSearchOpen(false);
+                        setSearchQuery('');
+                      }}
+                      to={result.to}
+                    >
+                      <span className="block truncate text-sm font-semibold text-white">{result.label}</span>
+                      <span className="mt-0.5 block text-xs text-[#8a94a6]">{result.meta}</span>
+                    </NavLink>
+                  ))
+                )}
+              </div>
+            )}
           </div>
           <div className="relative ml-auto">
             <button
@@ -235,8 +364,8 @@ function App() {
       <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.12),transparent_28%),linear-gradient(135deg,#06111e_0%,#06101a_45%,#071523_100%)] pt-28 lg:ml-[240px] lg:mr-4 lg:mt-4 lg:rounded-r-[28px] lg:pt-14">
         <div className="p-4 lg:p-7">
           <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/analytics" element={<DashboardPage />} />
+            <Route path="/" element={<DashboardPage userName={user.name} />} />
+            <Route path="/analytics" element={<DashboardPage userName={user.name} analyticsMode />} />
             <Route path="/workspaces" element={<WorkspacePage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/kanban" element={<KanbanOverviewPage />} />
@@ -245,6 +374,7 @@ function App() {
             <Route path="/projects/:id/kanban" element={<KanbanPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/focus" element={<FocusPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

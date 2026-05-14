@@ -6,6 +6,17 @@ export interface Workspace {
   updatedAt: string;
 }
 
+export interface AppUser {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AppUser;
+}
+
 export interface Project {
   id: number;
   name: string;

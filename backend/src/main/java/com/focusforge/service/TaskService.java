@@ -5,16 +5,18 @@ import com.focusforge.entity.Task;
 import com.focusforge.entity.TaskDependency;
 import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
+import com.focusforge.dto.TaskRequest;
+import com.focusforge.exception.ResourceNotFoundException;
 import com.focusforge.factory.TaskFactory;
 import com.focusforge.observer.TaskObserver;
 import com.focusforge.observer.TaskStatusChangedEvent;
 import com.focusforge.repository.ProjectRepository;
 import com.focusforge.repository.TaskRepository;
+import com.focusforge.security.CurrentUserService;
 import com.focusforge.strategy.TaskRecommendationStrategy;
 import com.focusforge.strategy.TaskSortStrategy;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -29,16 +31,20 @@ import java.util.Optional;
 @Service
 public class TaskService {
 
-    private TaskRepository taskRepository;
-    private ProjectRepository projectRepository;
-    private TaskStateService taskStateService;
-    private TaskDependencyService taskDependencyService;
-    private List<TaskObserver> taskObservers;
-    private List<TaskSortStrategy> taskSortStrategies;
-    private List<TaskRecommendationStrategy> taskRecommendationStrategies;
+    private final TaskRepository taskRepository;
+    private final ProjectRepository projectRepository;
+    private final TaskStateService taskStateService;
+    private final TaskDependencyService taskDependencyService;
+    private final List<TaskObserver> taskObservers;
+    private final List<TaskSortStrategy> taskSortStrategies;
+    private final List<TaskRecommendationStrategy> taskRecommendationStrategies;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService, TaskDependencyService taskDependencyService, List<TaskObserver> taskObservers, List<TaskSortStrategy> taskSortStrategies, List<TaskRecommendationStrategy> taskRecommendationStrategies) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository,
+                       TaskStateService taskStateService, TaskDependencyService taskDependencyService,
+                       List<TaskObserver> taskObservers, List<TaskSortStrategy> taskSortStrategies,
+                       List<TaskRecommendationStrategy> taskRecommendationStrategies,
+                       CurrentUserService currentUserService) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.taskStateService = taskStateService;
@@ -46,18 +52,35 @@ public class TaskService {
         this.taskObservers = taskObservers;
         this.taskSortStrategies = taskSortStrategies;
         this.taskRecommendationStrategies = taskRecommendationStrategies;
+        this.currentUserService = currentUserService;
     }
 
     public Task createTask(Long projectId, String title, String description, TaskType type) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
+        Project project = projectRepository.findByIdAndWorkspaceOwnerId(projectId, currentUserService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Project", projectId));
 
         Task task = TaskFactory.createTask(title, description, project, type);
         return taskRepository.save(task);
     }
 
+    public Task createTask(Long projectId, TaskRequest request) {
+        Project project = projectRepository.findByIdAndWorkspaceOwnerId(projectId, currentUserService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Project", projectId));
+
+        Task task = TaskFactory.createTask(
+                request.getTitle(),
+                request.getDescription(),
+                project,
+                request.getType(),
+                request.getStatus(),
+                request.getPriority(),
+                request.getDueDate(),
+                request.getEstimatedMinutes());
+        return taskRepository.save(task);
+    }
+
     public List<Task> getTasksByProject(Long projectId) {
-        return taskRepository.findByProjectId(projectId);
+        return taskRepository.findByProjectIdAndProjectWorkspaceOwnerId(projectId, currentUserService.getCurrentUser().getId());
     }
 
     public List<Task> getTasksByProject(Long projectId, String sort) {
@@ -86,24 +109,41 @@ public class TaskService {
     }
 
     public Task updateTask(Long id, String title, String description, TaskType type) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found: " + id));
+        Task task = taskRepository.findByIdAndProjectWorkspaceOwnerId(id, currentUserService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Task", id));
         task.setTitle(title);
         task.setDescription(description);
         task.setType(type);
         return taskRepository.save(task);
     }
 
+    public Task updateTask(Long id, TaskRequest request) {
+        Task task = taskRepository.findByIdAndProjectWorkspaceOwnerId(id, currentUserService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Task", id));
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setType(request.getType());
+        task.setPriority(request.getPriority() == null ? task.getPriority() : request.getPriority());
+        task.setDueDate(request.getDueDate());
+        task.setEstimatedMinutes(request.getEstimatedMinutes());
+        if (request.getStatus() != null && request.getStatus() != task.getStatus()) {
+            return updateTaskStatus(id, request.getStatus());
+        }
+        return taskRepository.save(task);
+    }
+
     public void deleteTask(Long id) {
-        taskRepository.deleteById(id);
+        Task task = taskRepository.findByIdAndProjectWorkspaceOwnerId(id, currentUserService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Task", id));
+        taskRepository.delete(task);
     }
 
     public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+        return taskRepository.findByProjectWorkspaceOwnerId(currentUserService.getCurrentUser().getId());
     }
 
     public Optional<Task> getTaskById(Long id) {
-        return taskRepository.findById(id);
+        return taskRepository.findByIdAndProjectWorkspaceOwnerId(id, currentUserService.getCurrentUser().getId());
     }
 
     public List<Task> getDueTasks(LocalDate from, LocalDate to, Long workspaceId, Long projectId) {
@@ -135,14 +175,17 @@ public class TaskService {
                 }
             }
 
+            Join<Object, Object> ownerProject = root.join("project");
+            predicates.add(criteriaBuilder.equal(ownerProject.get("workspace").get("owner").get("id"), currentUserService.getCurrentUser().getId()));
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
         return taskRepository.findAll(dueTaskSpec, Sort.by(Sort.Direction.ASC, "dueDate"));
     }
 
     public Task updateTaskStatus(Long id, TaskStatus newStatus) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found: " + id));
+        Task task = taskRepository.findByIdAndProjectWorkspaceOwnerId(id, currentUserService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Task", id));
         TaskStatus previousStatus = task.getStatus();
 
         // Validate state transition using the State pattern

@@ -8,6 +8,7 @@ Engineering students and developers often manage projects, study tasks, deadline
 - Deadlines are visible only in lists.
 - Focus sessions are disconnected from actual work.
 - It is hard to answer: "What should I work on next?"
+- Personal productivity data should not be exposed through open APIs.
 
 FocusForge solves this by providing one mono-user planning workspace for projects, tasks, deadlines, workflow, analytics, and focus work.
 
@@ -31,46 +32,52 @@ The app is not a simple todo list. It adds engineering-oriented structure:
 - Analytics dashboard
 - Calendar planning
 - Notification feedback
+- Login, private account data, and protected API access
 
 ## Demo Flow
 
-1. Open the Dashboard.
+1. Login with the demo account.
+   - Email: `demo@focusforge.dev`
+   - Password: `focusforge`
+   - Explain that all workspace data is scoped to the authenticated owner.
+
+2. Open the Dashboard.
    - Show totals, workload snapshot, charts, project progress, and focus time.
 
-2. Open Workspaces.
+3. Open Workspaces.
    - Create or show a workspace.
    - Explain that this is the top-level planning container.
 
-3. Open a Workspace.
+4. Open a Workspace.
    - Show projects and project cards.
    - Create a project if needed.
 
-4. Open a Project.
+5. Open a Project.
    - Create tasks.
    - Show task badges, estimates, metadata, and dependency controls.
    - Show sorting and next-task recommendation.
 
-5. Open the Kanban board.
+6. Open the Kanban board.
    - Move a task through valid transitions.
    - Explain invalid transitions are rejected by backend State pattern rules.
 
-6. Show Dependencies.
+7. Show Dependencies.
    - Add a task dependency.
    - Explain blocked-start validation.
 
-7. Show Notifications.
+8. Show Notifications.
    - Move a task status and show generated notification.
 
-8. Open Focus Mode.
+9. Open Focus Mode.
    - Select a task.
    - Start, finish, or cancel a focus session.
    - Show session history.
 
-9. Open Calendar.
+10. Open Calendar.
    - Show due tasks grouped by date.
    - Explain backend filtering by date, workspace, or project.
 
-10. Return to Analytics.
+11. Return to Analytics.
     - Show how the app answers the core question about current workload.
 
 ## Backend Architecture
@@ -103,6 +110,7 @@ Supporting architecture:
 - `command`: focus session actions
 - `decorator`: task display metadata
 - `state`: workflow transition rules
+- `security`: token auth and current-user ownership
 
 All API responses follow:
 
@@ -139,6 +147,8 @@ User experience:
 - Dashboard-first experience
 - Responsive navigation
 - Empty, loading, error, and disabled states
+- Login/register screen and authenticated app shell
+- Search across workspaces, projects, and tasks
 - Real backend data, no mock replacement data
 
 ## Design Patterns
@@ -168,15 +178,17 @@ Main tables:
 - `task_dependencies`
 - `notifications`
 - `focus_sessions`
+- `app_users`
 
 Relationships:
 
 ```txt
+AppUser 1 -> many Workspaces
 Workspace 1 -> many Projects
 Project 1 -> many Tasks
 Task 1 -> many FocusSessions
 Task many -> many Tasks through TaskDependency
-Task status changes -> Notifications
+Task status changes -> Notifications owned by AppUser
 ```
 
 Persistence is handled through Spring Data JPA repositories with PostgreSQL.

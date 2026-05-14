@@ -16,6 +16,14 @@ const httpClient = axios.create({
   timeout: 10000,
 });
 
+httpClient.interceptors.request.use((config) => {
+  const token = window.localStorage.getItem('focusforge_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Add a response interceptor to automatically extract data from the ApiResponse wrapper
 httpClient.interceptors.response.use(
   (response) => {

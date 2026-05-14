@@ -28,6 +28,11 @@ class FocusApi {
     const response = await httpClient.get('/api/focus-sessions');
     return response.data;
   }
+
+  async getActiveSession(): Promise<FocusSession | null> {
+    const response = await httpClient.get('/api/focus-sessions/active');
+    return response.data;
+  }
 }
 
 export const focusApi = new FocusApi();
