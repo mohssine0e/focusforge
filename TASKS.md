@@ -1138,7 +1138,7 @@ Validate:
 
 ### Task 47 - Improve forms, loading, errors, and empty states
 
-- [ ] **Task 47 complete**
+- [x] **Task 47 complete**
 
 Add consistent:
 
