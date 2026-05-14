@@ -69,6 +69,20 @@ export interface AppNotification {
   updatedAt: string;
 }
 
+export type FocusSessionType = 'POMODORO' | 'DEEP_WORK' | 'QUICK_FOCUS';
+
+export interface FocusSession {
+  id: number;
+  taskId: number;
+  taskTitle: string;
+  startTime: string;
+  endTime: string | null;
+  durationMinutes: number | null;
+  sessionType: FocusSessionType;
+  completed: boolean;
+  createdAt: string;
+}
+
 export interface TaskRequest {
   title: string;
   description: string;

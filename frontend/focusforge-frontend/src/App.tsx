@@ -3,6 +3,7 @@ import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { healthApi } from './api/healthApi';
 import { notificationApi } from './api/notificationApi';
+import FocusPage from './pages/FocusPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
 import WorkspacePage from './pages/WorkspacePage';
@@ -225,6 +226,16 @@ function App() {
             >
               Workspaces
             </NavLink>
+            <NavLink
+              to="/focus"
+              className={({ isActive }) =>
+                `rounded-md px-4 py-2 text-sm font-medium transition ${
+                  isActive ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                }`
+              }
+            >
+              Focus Mode
+            </NavLink>
           </nav>
         </div>
       </header>
@@ -235,6 +246,7 @@ function App() {
             <Route path="/workspaces" element={<WorkspacePage />} />
             <Route path="/workspaces/:id" element={<WorkspaceDetailPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/focus" element={<FocusPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
