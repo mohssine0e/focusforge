@@ -688,7 +688,7 @@ Goal: task changes generate visible notifications.
 
 ### Task 28 - Create notification backend model
 
-- [ ] **Task 28 complete**
+- [x] **Task 28 complete**
 
 Create:
 
