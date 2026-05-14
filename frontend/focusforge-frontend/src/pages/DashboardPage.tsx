@@ -104,14 +104,23 @@ const DashboardPage: React.FC = () => {
   ];
 
   if (loading) {
-    return <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 text-slate-300">Loading dashboard...</div>;
+    return (
+      <div className="space-y-6 px-4">
+        <div className="h-9 w-52 animate-pulse rounded bg-[#22223a]" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div key={index} className="h-28 animate-pulse rounded-xl border border-[#2e2e45] bg-[#1a1a24]" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6 px-4">
       <div>
         <h1 className="text-3xl font-semibold text-white">Dashboard</h1>
-        <p className="mt-2 text-slate-400">{healthStatus}</p>
+        <p className="mt-2 text-[#8b8ba0]">{healthStatus}</p>
       </div>
 
       {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-100">{error}</div>}
@@ -124,14 +133,15 @@ const DashboardPage: React.FC = () => {
           ['Focus Time', `${overview?.totalFocusMinutes ?? 0}m`],
           ['Completion Rate', `${completionRate}%`],
         ].map(([label, value]) => (
-          <div key={label} className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+          <div key={label} className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#8b8ba0]">{label}</p>
             <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
+            <p className="mt-2 text-xs text-[#55556a]">Current workspace</p>
           </div>
         ))}
       </div>
 
-      <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+      <section className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold text-white">Workload Snapshot</h2>
@@ -152,62 +162,74 @@ const DashboardPage: React.FC = () => {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+        <section className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5">
           <h2 className="text-xl font-semibold text-white">Tasks by Status</h2>
           <div className="mt-4 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={statusData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={95}>
-                  {statusData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {statusData.length === 0 ? (
+              <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-[#2e2e45] text-sm text-[#8b8ba0]">
+                No task status data yet
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={statusData} dataKey="value" nameKey="name" innerRadius={62} outerRadius={98} paddingAngle={2}>
+                    {statusData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ background: '#1a1a24', border: '1px solid #2e2e45', borderRadius: 8, color: '#f0f0f5' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </section>
 
-        <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+        <section className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5">
           <h2 className="text-xl font-semibold text-white">Tasks by Priority</h2>
           <div className="mt-4 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={priorityData}>
-                <XAxis dataKey="name" stroke="#8b8ba0" />
-                <YAxis allowDecimals={false} stroke="#8b8ba0" />
-                <Tooltip />
-                <Bar dataKey="value">
-                  {priorityData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {priorityData.length === 0 ? (
+              <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-[#2e2e45] text-sm text-[#8b8ba0]">
+                No priority data yet
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={priorityData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                  <XAxis dataKey="name" stroke="#8b8ba0" tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} stroke="#8b8ba0" tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ background: '#1a1a24', border: '1px solid #2e2e45', borderRadius: 8, color: '#f0f0f5' }} />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    {priorityData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </section>
       </div>
 
-      <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+      <section className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5">
         <h2 className="text-xl font-semibold text-white">Project Progress</h2>
         <div className="mt-4 space-y-3">
           {projectRows.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-700 p-6 text-center">
-              <p className="text-sm font-semibold text-slate-200">No projects yet</p>
-              <p className="mt-1 text-xs text-slate-500">Create projects and tasks to populate progress analytics.</p>
+            <div className="rounded-lg border border-dashed border-[#2e2e45] p-6 text-center">
+              <p className="text-sm font-semibold text-[#f0f0f5]">No projects yet</p>
+              <p className="mt-1 text-xs text-[#8b8ba0]">Create projects and tasks to populate progress analytics.</p>
             </div>
           ) : (
             projectRows.map((project) => (
-              <div key={project.id} className="rounded-lg border border-slate-800 bg-slate-950 p-4">
+              <div key={project.id} className="rounded-lg border border-[#2e2e45] bg-[#22223a] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h3 className="text-sm font-semibold text-white">{project.name}</h3>
-                    <p className="mt-1 text-xs text-slate-500">{project.status}</p>
+                    <p className="mt-1 text-xs text-[#8b8ba0]">{project.status}</p>
                   </div>
-                  <span className="text-sm font-semibold text-slate-200">{project.completionRate}%</span>
+                  <span className="text-sm font-semibold text-[#f0f0f5]">{project.completionRate}%</span>
                 </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#0f0f13]">
                   <div
-                    className="h-full rounded-full bg-cyan-400"
+                    className="h-full rounded-full bg-[#7c6ef7]"
                     style={{ width: `${project.completionRate}%` }}
                   />
                 </div>

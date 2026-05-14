@@ -5,18 +5,18 @@ import { taskApi } from '../api/taskApi';
 import type { Project, Task, TaskDependency, TaskRequest, TaskType } from '../types';
 
 const statusClass: Record<string, string> = {
-  TODO: 'bg-slate-400/10 text-slate-200',
-  IN_PROGRESS: 'bg-blue-400/10 text-blue-200',
-  BLOCKED: 'bg-red-400/10 text-red-200',
-  REVIEW: 'bg-violet-400/10 text-violet-200',
-  DONE: 'bg-emerald-400/10 text-emerald-200',
+  TODO: 'border border-[#55556a] bg-[#55556a]/15 text-[#c7c7d6]',
+  IN_PROGRESS: 'border border-[#7c6ef7] bg-[#7c6ef7]/15 text-[#bdb7ff]',
+  BLOCKED: 'border border-[#e05555] bg-[#e05555]/15 text-[#ffb7b7]',
+  REVIEW: 'border border-[#f0a500] bg-[#f0a500]/15 text-[#ffd27a]',
+  DONE: 'border border-[#22c55e] bg-[#22c55e]/15 text-[#86efac]',
 };
 
 const priorityClass: Record<string, string> = {
-  LOW: 'bg-slate-400/10 text-slate-200',
-  MEDIUM: 'bg-cyan-400/10 text-cyan-200',
-  HIGH: 'bg-amber-400/10 text-amber-200',
-  URGENT: 'bg-red-400/10 text-red-200',
+  LOW: 'bg-[#55556a]/20 text-[#b8b8c8]',
+  MEDIUM: 'bg-[#f0a500]/20 text-[#ffd27a]',
+  HIGH: 'bg-[#e07855]/20 text-[#ffb092]',
+  URGENT: 'bg-[#e05555]/20 text-[#ffb7b7]',
 };
 
 type TaskSortOption = 'none' | 'priority' | 'deadline' | 'status';

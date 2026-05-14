@@ -159,25 +159,33 @@ const FocusPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 text-slate-300">Loading focus mode...</div>;
+    return (
+      <div className="space-y-6 px-4">
+        <div className="h-9 w-48 animate-pulse rounded bg-[#22223a]" />
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="h-96 animate-pulse rounded-xl border border-[#2e2e45] bg-[#1a1a24]" />
+          <div className="h-96 animate-pulse rounded-xl border border-[#2e2e45] bg-[#1a1a24]" />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6 px-4">
       <div>
         <h1 className="text-3xl font-semibold text-white">Focus Mode</h1>
-        <p className="mt-2 text-slate-400">Track focused work sessions against real project tasks.</p>
+        <p className="mt-2 text-[#8b8ba0]">Track focused work sessions against real project tasks.</p>
       </div>
 
       {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-100">{error}</div>}
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+        <section className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-6">
           <div className="flex flex-col gap-4 md:flex-row">
             <label className="flex-1 space-y-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Active task</span>
               <select
-                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+                className="w-full rounded-md border border-[#2e2e45] bg-[#0f0f13] px-3 py-2 text-sm text-[#f0f0f5] outline-none focus:border-[#7c6ef7]"
                 disabled={!!activeSession || tasks.length === 0}
                 value={selectedTaskId}
                 onChange={(event) => setSelectedTaskId(event.target.value)}
@@ -197,7 +205,7 @@ const FocusPage: React.FC = () => {
             <label className="w-full space-y-2 md:w-56">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Focus type</span>
               <select
-                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+                className="w-full rounded-md border border-[#2e2e45] bg-[#0f0f13] px-3 py-2 text-sm text-[#f0f0f5] outline-none focus:border-[#7c6ef7]"
                 disabled={!!activeSession}
                 value={sessionType}
                 onChange={(event) => setSessionType(event.target.value as FocusSessionType)}
@@ -209,12 +217,14 @@ const FocusPage: React.FC = () => {
             </label>
           </div>
 
-          <div className="mt-8 rounded-xl border border-slate-800 bg-slate-950 p-8 text-center">
-            <p className="text-sm font-medium uppercase tracking-wide text-cyan-300">
-              {activeSession ? sessionTypeLabel[activeSession.sessionType] : sessionTypeLabel[sessionType]}
-            </p>
-            <div className="mt-4 text-6xl font-semibold text-white">{formatSeconds(elapsedSeconds)}</div>
-            <p className="mt-4 text-sm text-slate-400">
+          <div className="mt-8 rounded-xl border border-[#2e2e45] bg-[#0f0f13] p-8 text-center">
+            <div className="mx-auto flex h-56 w-56 flex-col items-center justify-center rounded-full border border-[#7c6ef7]/50 bg-[#1a1a24] shadow-[0_0_0_12px_rgba(124,110,247,0.08)]">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#bdb7ff]">
+                {activeSession ? sessionTypeLabel[activeSession.sessionType] : sessionTypeLabel[sessionType]}
+              </p>
+              <div className="mt-3 text-6xl font-semibold text-white">{formatSeconds(elapsedSeconds)}</div>
+            </div>
+            <p className="mx-auto mt-6 max-w-md text-sm text-[#8b8ba0]">
               {activeSession && selectedTask
                 ? `Focusing on ${selectedTask.title}`
                 : selectedTask
@@ -225,7 +235,7 @@ const FocusPage: React.FC = () => {
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               {!activeSession ? (
                 <button
-                  className="rounded-md bg-cyan-400 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-md bg-[#7c6ef7] px-5 py-2 text-sm font-semibold text-white hover:bg-[#6c5ee0] disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={actionLoading || tasks.length === 0}
                   onClick={handleStart}
                   type="button"
@@ -235,7 +245,7 @@ const FocusPage: React.FC = () => {
               ) : (
                 <>
                   <button
-                    className="rounded-md bg-emerald-400 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-md bg-[#22c55e] px-5 py-2 text-sm font-semibold text-[#0f0f13] hover:bg-[#4ade80] disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={actionLoading}
                     onClick={handleFinish}
                     type="button"
@@ -256,11 +266,11 @@ const FocusPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+        <section className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-semibold text-white">Session History</h2>
             <button
-              className="rounded-md border border-slate-700 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-slate-800"
+              className="rounded-md border border-[#2e2e45] px-3 py-2 text-xs font-medium text-[#f0f0f5] hover:bg-[#22223a]"
               onClick={loadSessions}
               type="button"
             >
@@ -270,13 +280,13 @@ const FocusPage: React.FC = () => {
 
           <div className="mt-4 space-y-3">
             {sessions.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-slate-700 p-6 text-center">
-                <p className="text-sm font-semibold text-slate-200">No focus sessions yet</p>
-                <p className="mt-1 text-xs text-slate-500">Finished and cancelled sessions will appear here.</p>
+              <div className="rounded-lg border border-dashed border-[#2e2e45] p-6 text-center">
+                <p className="text-sm font-semibold text-[#f0f0f5]">No focus sessions yet</p>
+                <p className="mt-1 text-xs text-[#8b8ba0]">Finished and cancelled sessions will appear here.</p>
               </div>
             ) : (
               sessions.slice(0, 8).map((session) => (
-                <div key={session.id} className="rounded-lg border border-slate-800 bg-slate-950 p-4">
+                <div key={session.id} className="rounded-lg border border-[#2e2e45] bg-[#22223a] p-4">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <h3 className="text-sm font-semibold text-white">{session.taskTitle}</h3>

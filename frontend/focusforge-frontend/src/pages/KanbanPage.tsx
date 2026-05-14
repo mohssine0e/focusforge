@@ -4,18 +4,18 @@ import { taskApi } from '../api/taskApi';
 import type { Task, TaskStatusType } from '../types';
 
 const statusClass: Record<string, string> = {
-  TODO: 'bg-slate-400/10 text-slate-200',
-  IN_PROGRESS: 'bg-blue-400/10 text-blue-200',
-  BLOCKED: 'bg-red-400/10 text-red-200',
-  REVIEW: 'bg-violet-400/10 text-violet-200',
-  DONE: 'bg-emerald-400/10 text-emerald-200',
+  TODO: 'border-[#55556a] bg-[#55556a]/15 text-[#c7c7d6]',
+  IN_PROGRESS: 'border-[#7c6ef7] bg-[#7c6ef7]/15 text-[#bdb7ff]',
+  BLOCKED: 'border-[#e05555] bg-[#e05555]/15 text-[#ffb7b7]',
+  REVIEW: 'border-[#f0a500] bg-[#f0a500]/15 text-[#ffd27a]',
+  DONE: 'border-[#22c55e] bg-[#22c55e]/15 text-[#86efac]',
 };
 
 const priorityClass: Record<string, string> = {
-  LOW: 'bg-slate-400/10 text-slate-200',
-  MEDIUM: 'bg-cyan-400/10 text-cyan-200',
-  HIGH: 'bg-amber-400/10 text-amber-200',
-  URGENT: 'bg-red-400/10 text-red-200',
+  LOW: 'bg-[#55556a]/20 text-[#b8b8c8]',
+  MEDIUM: 'bg-[#f0a500]/20 text-[#ffd27a]',
+  HIGH: 'bg-[#e07855]/20 text-[#ffb092]',
+  URGENT: 'bg-[#e05555]/20 text-[#ffb7b7]',
 };
 
 // Define valid state transitions based on the State pattern rules
@@ -34,6 +34,14 @@ const getValidTransitions = (currentStatus: TaskStatusType): TaskStatusType[] =>
     default:
       return [];
   }
+};
+
+const statusAccent: Record<string, string> = {
+  TODO: 'bg-[#55556a]',
+  IN_PROGRESS: 'bg-[#7c6ef7]',
+  BLOCKED: 'bg-[#e05555]',
+  REVIEW: 'bg-[#f0a500]',
+  DONE: 'bg-[#22c55e]',
 };
 
 const KanbanPage: React.FC = () => {
@@ -62,11 +70,20 @@ const KanbanPage: React.FC = () => {
   }, [fetchTasks, id]);
 
   if (loading) {
-    return <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 text-slate-300">Loading tasks...</div>;
+    return (
+      <div className="space-y-6 p-6">
+        <div className="h-9 w-56 animate-pulse rounded bg-[#22223a]" />
+        <div className="grid gap-4 md:grid-cols-5">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div key={index} className="h-72 animate-pulse rounded-xl border border-[#2e2e45] bg-[#1a1a24]" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="rounded-lg border border-red-800 bg-red-900 p-5 text-red-200">Error: {error}</div>;
+    return <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-5 text-red-100">Error: {error}</div>;
   }
 
   // Group tasks by status
@@ -106,10 +123,11 @@ const KanbanPage: React.FC = () => {
         {validTransitions.map(transition => (
           <button
             key={transition}
-            className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800"
+            className="rounded-md border border-[#2e2e45] px-2 py-1 text-xs font-medium text-[#f0f0f5] hover:border-[#7c6ef7] hover:bg-[#7c6ef7]/10"
             onClick={() => updateTaskStatus(task.id, transition)}
+            type="button"
           >
-            {transition}
+            {transition.replace('_', ' ')}
           </button>
         ))}
       </div>
@@ -118,26 +136,47 @@ const KanbanPage: React.FC = () => {
 
   return (
     <div className="kanban-board p-6">
-      <h1 className="text-3xl font-bold text-white mb-6">Kanban Board</h1>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-semibold text-white">Kanban Board</h1>
+          <p className="mt-2 text-sm text-[#8b8ba0]">Move tasks through the enforced workflow without losing project context.</p>
+        </div>
+        <span className="rounded-full border border-[#2e2e45] bg-[#1a1a24] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#8b8ba0]">
+          {tasks.length} tasks
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
         {Object.entries(tasksByStatus).map(([status, taskList]) => (
-          <div key={status} className="kanban-column bg-slate-900 rounded-lg border border-slate-800 p-4">
-            <h2 className="text-xl font-semibold text-white mb-4 capitalize">
-              {status.replace('_', ' ')}
-            </h2>
-            <div className="space-y-3 min-h-[100px]">
+          <div key={status} className="kanban-column rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-4">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className={`h-2.5 w-2.5 rounded-full ${statusAccent[status]}`} />
+                <h2 className="truncate text-sm font-semibold uppercase tracking-wide text-white">
+                  {status.replace('_', ' ')}
+                </h2>
+              </div>
+              <span className="rounded-full bg-[#22223a] px-2 py-0.5 text-xs font-semibold text-[#8b8ba0]">
+                {taskList.length}
+              </span>
+            </div>
+            <div className="min-h-[160px] space-y-3">
+              {taskList.length === 0 && (
+                <div className="rounded-lg border border-dashed border-[#2e2e45] p-4 text-center text-xs text-[#8b8ba0]">
+                  No tasks
+                </div>
+              )}
               {taskList.map(task => (
-                <div key={task.id} className="task-item rounded-lg border border-slate-800 bg-slate-900 p-4">
-                  <h3 className="text-lg font-semibold text-white">{task.title}</h3>
-                  <p className="mt-2 text-sm text-slate-400">{task.description}</p>
+                <div key={task.id} className="task-item rounded-lg border border-[#2e2e45] bg-[#22223a] p-4">
+                  <h3 className="text-sm font-semibold text-white">{task.title}</h3>
+                  <p className="mt-2 line-clamp-3 text-xs text-[#8b8ba0]">{task.description || 'No description provided.'}</p>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide">
-                    <span className={`rounded-full px-2 py-1 ${statusClass[task.status] || statusClass.TODO}`}>
-                      {task.status}
+                    <span className={`rounded-full border px-2 py-1 ${statusClass[task.status] || statusClass.TODO}`}>
+                      {task.status.replace('_', ' ')}
                     </span>
                     <span className={`rounded-full px-2 py-1 ${priorityClass[task.priority] || priorityClass.MEDIUM}`}>
                       {task.priorityLabel ?? task.priority}
                     </span>
-                    <span className="rounded-full bg-fuchsia-400/10 px-2 py-1 text-fuchsia-200">
+                    <span className="rounded-full bg-[#0f0f13] px-2 py-1 text-[#c7c7d6]">
                       {task.type}
                     </span>
                   </div>

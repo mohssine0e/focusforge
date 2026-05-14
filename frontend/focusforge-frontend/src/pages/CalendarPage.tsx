@@ -147,64 +147,70 @@ const CalendarPage: React.FC = () => {
         )}
 
         {loading ? (
-          <div className="mt-4 grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-[#2e2e45] bg-[#2e2e45]">
-            {Array.from({ length: 42 }, (_, index) => (
-              <div key={index} className="min-h-28 animate-pulse bg-[#22223a] p-3" />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-4 overflow-hidden rounded-lg border border-[#2e2e45]">
-            <div className="grid grid-cols-7 border-b border-[#2e2e45] bg-[#22223a]">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#8b8ba0]">
-                  {day}
-                </div>
+          <div className="mt-4 overflow-x-auto rounded-lg border border-[#2e2e45]">
+            <div className="grid min-w-[860px] grid-cols-7 gap-px bg-[#2e2e45]">
+              {Array.from({ length: 42 }, (_, index) => (
+                <div key={index} className="min-h-28 animate-pulse bg-[#22223a] p-3" />
               ))}
             </div>
-            <div className="grid grid-cols-7 bg-[#2e2e45] gap-px">
-              {calendarDays.map((date) => {
-                const dateKey = formatDateParam(date);
-                const dayTasks = tasksByDate[dateKey] ?? [];
-                const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
-                const isToday = dateKey === formatDateParam(new Date());
-
-                return (
-                  <div
-                    key={dateKey}
-                    className={`min-h-36 bg-[#1a1a24] p-3 ${isCurrentMonth ? '' : 'opacity-45'}`}
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className={`text-sm font-semibold ${isToday ? 'text-[#7c6ef7]' : 'text-[#f0f0f5]'}`}>
-                        {date.getDate()}
-                      </span>
-                      {dayTasks.length > 0 && (
-                        <span className="rounded-full bg-[#7c6ef7]/20 px-2 py-0.5 text-xs font-semibold text-[#bdb7ff]">
-                          {dayTasks.length}
-                        </span>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      {dayTasks.map((task) => (
-                        <Link
-                          key={task.id}
-                          className="block rounded-lg border border-[#2e2e45] bg-[#22223a] p-2 hover:border-[#7c6ef7]/70"
-                          to={`/projects/${task.projectId}`}
-                        >
-                          <p className="line-clamp-2 text-xs font-semibold text-white">{task.title}</p>
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClasses[task.status]}`}>
-                              {task.status.replace('_', ' ')}
-                            </span>
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${priorityClasses[task.priority]}`}>
-                              {task.priority}
-                            </span>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+          </div>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-lg border border-[#2e2e45]">
+            <div className="min-w-[860px]">
+              <div className="grid grid-cols-7 border-b border-[#2e2e45] bg-[#22223a]">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                  <div key={day} className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#8b8ba0]">
+                    {day}
                   </div>
-                );
-              })}
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-px bg-[#2e2e45]">
+                {calendarDays.map((date) => {
+                  const dateKey = formatDateParam(date);
+                  const dayTasks = tasksByDate[dateKey] ?? [];
+                  const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
+                  const isToday = dateKey === formatDateParam(new Date());
+
+                  return (
+                    <div
+                      key={dateKey}
+                      className={`min-h-40 bg-[#1a1a24] p-3 ${isCurrentMonth ? '' : 'opacity-45'}`}
+                    >
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
+                          isToday ? 'bg-[#7c6ef7]/20 text-[#bdb7ff]' : 'text-[#f0f0f5]'
+                        }`}>
+                          {date.getDate()}
+                        </span>
+                        {dayTasks.length > 0 && (
+                          <span className="rounded-full bg-[#7c6ef7]/20 px-2 py-0.5 text-xs font-semibold text-[#bdb7ff]">
+                            {dayTasks.length}
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        {dayTasks.map((task) => (
+                          <Link
+                            key={task.id}
+                            className="block rounded-lg border border-[#2e2e45] bg-[#22223a] p-2 hover:border-[#7c6ef7]/70"
+                            to={`/projects/${task.projectId}`}
+                          >
+                            <p className="line-clamp-2 text-xs font-semibold text-white">{task.title}</p>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClasses[task.status]}`}>
+                                {task.status.replace('_', ' ')}
+                              </span>
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${priorityClasses[task.priority]}`}>
+                                {task.priority}
+                              </span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
