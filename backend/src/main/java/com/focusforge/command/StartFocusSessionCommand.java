@@ -10,6 +10,8 @@ import com.focusforge.repository.TaskRepository;
 
 import java.time.LocalDateTime;
 
+// cette pattern de commande est utilisée pour encapsuler la logique de démarrage d'une session de focus,
+//  en séparant les préoccupations et en facilitant la maintenance du code.
 public class StartFocusSessionCommand implements FocusSessionCommand {
 
     private final FocusSessionRepository focusSessionRepository;
@@ -18,7 +20,7 @@ public class StartFocusSessionCommand implements FocusSessionCommand {
     private final FocusSessionType sessionType;
 
     public StartFocusSessionCommand(FocusSessionRepository focusSessionRepository, TaskRepository taskRepository,
-                                    Long taskId, FocusSessionType sessionType) {
+            Long taskId, FocusSessionType sessionType) {
         this.focusSessionRepository = focusSessionRepository;
         this.taskRepository = taskRepository;
         this.taskId = taskId;

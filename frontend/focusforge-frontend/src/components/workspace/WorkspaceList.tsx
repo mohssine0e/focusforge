@@ -84,11 +84,11 @@ const WorkspaceList: React.FunctionComponent = () => {
   if (loading && !workspaces.length) {
     return (
       <div className="space-y-6">
-        <div className="h-10 w-48 animate-pulse rounded bg-[#22223a]" />
-        <div className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5">
-          <div className="h-5 w-40 animate-pulse rounded bg-[#22223a]" />
-          <div className="mt-4 h-10 animate-pulse rounded bg-[#22223a]" />
-          <div className="mt-3 h-24 animate-pulse rounded bg-[#22223a]" />
+        <div className="h-10 w-48 animate-pulse rounded bg-[#141d2d]" />
+        <div className="rounded-xl border border-[#223047] bg-[#121a29] p-5">
+          <div className="h-5 w-40 animate-pulse rounded bg-[#172238]" />
+          <div className="mt-4 h-10 animate-pulse rounded bg-[#172238]" />
+          <div className="mt-3 h-24 animate-pulse rounded bg-[#172238]" />
         </div>
       </div>
     );
@@ -98,11 +98,11 @@ const WorkspaceList: React.FunctionComponent = () => {
     <div className="workspace-list space-y-6">
       <h1 className="text-3xl font-semibold text-white">Workspaces</h1>
 
-      <form onSubmit={handleCreate} className="rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5 shadow-sm">
+      <form onSubmit={handleCreate} className="rounded-xl border border-[#223047] bg-[#121a29] p-5 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold text-white">Create New Workspace</h2>
         <div>
           <input
-            className="mb-2 w-full rounded-md border border-[#2e2e45] bg-[#0f0f13] px-3 py-2 text-[#f0f0f5] outline-none placeholder:text-[#55556a] focus:border-[#7c6ef7]"
+            className="mb-2 w-full rounded-md border border-[#223047] bg-[#07111d] px-3 py-2 text-[#f0f0f5] outline-none placeholder:text-[#69758a] focus:border-[#8b5cf6]"
             type="text"
             placeholder="Workspace name"
             value={newWorkspace.name}
@@ -114,7 +114,7 @@ const WorkspaceList: React.FunctionComponent = () => {
         </div>
         <div>
           <textarea
-            className="mb-2 w-full rounded-md border border-[#2e2e45] bg-[#0f0f13] px-3 py-2 text-[#f0f0f5] outline-none placeholder:text-[#55556a] focus:border-[#7c6ef7]"
+            className="mb-2 w-full rounded-md border border-[#223047] bg-[#07111d] px-3 py-2 text-[#f0f0f5] outline-none placeholder:text-[#69758a] focus:border-[#8b5cf6]"
             placeholder="Description"
             value={newWorkspace.description}
             onChange={(e) => setNewWorkspace({...newWorkspace, description: e.target.value})}
@@ -122,7 +122,7 @@ const WorkspaceList: React.FunctionComponent = () => {
         </div>
         {formError && <p className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">{formError}</p>}
         <button
-          className="rounded-md bg-[#7c6ef7] px-4 py-2 font-medium text-white hover:bg-[#6c5ee0] disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md bg-[#8b5cf6] px-4 py-2 font-medium text-white hover:bg-[#7c3aed] disabled:cursor-not-allowed disabled:opacity-60"
           disabled={submitting || !newWorkspace.name.trim()}
           type="submit"
         >
@@ -134,12 +134,12 @@ const WorkspaceList: React.FunctionComponent = () => {
 
       <div className="grid gap-4 md:grid-cols-2">
         {workspaces.map((workspace) => (
-          <div key={workspace.id} className="workspace-item rounded-xl border border-[#2e2e45] bg-[#1a1a24] p-5">
+          <div key={workspace.id} className="workspace-item rounded-xl border border-[#223047] bg-[#121a29] p-5">
             <h2 className="text-xl font-semibold text-white">{workspace.name}</h2>
-            <p className="mt-2 text-sm text-[#8b8ba0]">{workspace.description || 'No description provided.'}</p>
+            <p className="mt-2 text-sm text-[#8a94a6]">{workspace.description || 'No description provided.'}</p>
             <div className="mt-4 flex gap-2">
               <Link
-                className="rounded-md bg-[#7c6ef7] px-3 py-2 text-sm font-medium text-white hover:bg-[#6c5ee0]"
+                className="rounded-md bg-[#8b5cf6] px-3 py-2 text-sm font-medium text-white hover:bg-[#7c3aed]"
                 to={`/workspaces/${workspace.id}`}
               >
                 Open workspace
@@ -158,12 +158,12 @@ const WorkspaceList: React.FunctionComponent = () => {
       </div>
 
       {workspaces.length === 0 && !loading && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#2e2e45] bg-[#1a1a24] p-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#2e2e45] bg-[#22223a] text-xs font-bold text-[#7c6ef7]">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#223047] bg-[#121a29] p-8 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#223047] bg-[#172238] text-xs font-bold text-[#a78bfa]">
             WS
           </div>
           <h2 className="mt-3 text-sm font-semibold text-white">No workspaces yet</h2>
-          <p className="mt-1 max-w-sm text-xs text-[#8b8ba0]">Create your first workspace to organize projects and tasks.</p>
+          <p className="mt-1 max-w-sm text-xs text-[#8a94a6]">Create your first workspace to organize projects and tasks.</p>
         </div>
       )}
     </div>

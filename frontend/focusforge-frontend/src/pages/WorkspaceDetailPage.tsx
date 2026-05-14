@@ -37,7 +37,7 @@ const WorkspaceDetailPage: React.FC = () => {
   }
 
   if (loading) {
-    return <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 text-slate-300">Loading workspace...</div>;
+    return <div className="rounded-xl border border-[#223047] bg-[#121a29] p-5 text-[#c5cbd8]">Loading workspace...</div>;
   }
 
   if (error || !workspace) {
@@ -45,13 +45,13 @@ const WorkspaceDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 px-4">
-      <Link className="text-sm font-medium text-cyan-300 hover:text-cyan-200" to="/workspaces">
+    <div className="space-y-6">
+      <Link className="text-sm font-medium text-[#a78bfa] hover:text-[#c4b5fd]" to="/workspaces">
         Back to workspaces
       </Link>
-      <section className="rounded-lg border border-slate-800 bg-slate-900 p-6">
+      <section className="rounded-xl border border-[#223047] bg-[#121a29] p-6">
         <h1 className="text-3xl font-semibold text-white">{workspace.name}</h1>
-        <p className="mt-2 max-w-3xl text-slate-400">{workspace.description}</p>
+        <p className="mt-2 max-w-3xl text-[#8a94a6]">{workspace.description}</p>
       </section>
       <ProjectList workspaceId={workspace.id} />
     </div>
