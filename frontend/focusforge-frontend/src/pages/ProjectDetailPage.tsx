@@ -19,6 +19,9 @@ const priorityClass: Record<string, string> = {
   URGENT: 'bg-red-400/10 text-red-200',
 };
 
+type TaskSortOption = 'none' | 'priority' | 'deadline' | 'status';
+type RecommendationStrategy = 'priority' | 'deadline' | 'shortest';
+
 const getErrorMessage = (err: unknown, fallback: string) => {
   if (
     typeof err === 'object' &&
@@ -46,6 +49,9 @@ const ProjectDetailPage: React.FC = () => {
   const [dependencySelections, setDependencySelections] = useState<Record<number, string>>({});
   const [dependencyErrors, setDependencyErrors] = useState<Record<number, string>>({});
   const [dependencyBusyTaskId, setDependencyBusyTaskId] = useState<number | null>(null);
+  const [sortOption, setSortOption] = useState<TaskSortOption>('none');
+  const [recommendationStrategy, setRecommendationStrategy] = useState<RecommendationStrategy>('priority');
+  const [recommendedTask, setRecommendedTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newTask, setNewTask] = useState<TaskRequest>({
@@ -83,9 +89,9 @@ const ProjectDetailPage: React.FC = () => {
     setDependenciesByTask(Object.fromEntries(entries));
   }, []);
 
-  const fetchTasks = useCallback(async (projectId: number) => {
+  const fetchTasks = useCallback(async (projectId: number, sort?: string) => {
     try {
-      const data = await taskApi.getTasksByProject(projectId);
+      const data = await taskApi.getTasksByProject(projectId, sort);
       setTasks(data);
       await loadDependencies(data);
     } catch (err) {
@@ -94,13 +100,26 @@ const ProjectDetailPage: React.FC = () => {
     }
   }, [loadDependencies]);
 
+  const fetchRecommendedTask = useCallback(async (projectId: number, strategy: RecommendationStrategy) => {
+    try {
+      const data = await taskApi.getRecommendedTask(projectId, strategy);
+      setRecommendedTask(data);
+    } catch (err) {
+      setError('Failed to fetch recommended task');
+      console.error(err);
+    }
+  }, []);
+
   useEffect(() => {
     if (id) {
+      const projectId = parseInt(id);
+      const sort = sortOption === 'none' ? undefined : sortOption;
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchProject(parseInt(id));
-      fetchTasks(parseInt(id));
+      fetchProject(projectId);
+      fetchTasks(projectId, sort);
+      fetchRecommendedTask(projectId, recommendationStrategy);
     }
-  }, [fetchProject, fetchTasks, id]);
+  }, [fetchProject, fetchRecommendedTask, fetchTasks, id, recommendationStrategy, sortOption]);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +135,7 @@ const ProjectDetailPage: React.FC = () => {
         description: '',
         type: 'STUDY'
       });
+      await fetchRecommendedTask(parseInt(id), recommendationStrategy);
     } catch (err) {
       setError('Failed to create task');
       console.error(err);
@@ -186,6 +206,9 @@ const ProjectDetailPage: React.FC = () => {
       const updatedTask = await taskApi.updateTask(editingTaskId, editTask);
       setTasks(tasks.map((task) => (task.id === editingTaskId ? updatedTask : task)));
       setEditingTaskId(null);
+      if (id) {
+        await fetchRecommendedTask(parseInt(id), recommendationStrategy);
+      }
     } catch (err) {
       setError('Failed to update task');
       console.error(err);
@@ -198,6 +221,9 @@ const ProjectDetailPage: React.FC = () => {
     try {
       await taskApi.deleteTask(taskId);
       setTasks(tasks.filter((task) => task.id !== taskId));
+      if (id) {
+        await fetchRecommendedTask(parseInt(id), recommendationStrategy);
+      }
     } catch (err) {
       setError('Failed to delete task');
       console.error(err);
@@ -264,6 +290,58 @@ const ProjectDetailPage: React.FC = () => {
 
         <div className="tasks-list space-y-4">
           <h2 className="text-2xl font-semibold text-white">Tasks</h2>
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+            <div className="grid gap-4 md:grid-cols-[1fr_1fr_1.5fr]">
+              <label className="space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Sort tasks</span>
+                <select
+                  className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value as TaskSortOption)}
+                >
+                  <option value="none">Default order</option>
+                  <option value="priority">Priority</option>
+                  <option value="deadline">Deadline</option>
+                  <option value="status">Status</option>
+                </select>
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Recommendation</span>
+                <select
+                  className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+                  value={recommendationStrategy}
+                  onChange={(e) => setRecommendationStrategy(e.target.value as RecommendationStrategy)}
+                >
+                  <option value="priority">Priority first</option>
+                  <option value="deadline">Deadline first</option>
+                  <option value="shortest">Shortest task first</option>
+                </select>
+              </label>
+
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-cyan-200">Recommended next task</p>
+                {recommendedTask ? (
+                  <div className="mt-2">
+                    <h3 className="text-base font-semibold text-white">{recommendedTask.title}</h3>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide">
+                      <span className={`rounded-full px-2 py-1 ${statusClass[recommendedTask.status] ?? statusClass.TODO}`}>
+                        {recommendedTask.status}
+                      </span>
+                      <span className={`rounded-full px-2 py-1 ${priorityClass[recommendedTask.priority] ?? priorityClass.MEDIUM}`}>
+                        {recommendedTask.priority}
+                      </span>
+                      <span className="rounded-full bg-slate-800 px-2 py-1 text-slate-300">
+                        {recommendedTask.estimatedMinutes ?? 0} min
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-400">No open tasks to recommend.</p>
+                )}
+              </div>
+            </div>
+          </div>
           {tasks.length === 0 && (
             <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900 p-6 text-slate-400">
               No tasks yet. Create the first one to start planning this project.

@@ -823,7 +823,7 @@ Validate:
 
 ### Task 34 - Add sorting and recommendation to frontend
 
-- [ ] **Task 34 complete**
+- [x] **Task 34 complete**
 
 Frontend:
 

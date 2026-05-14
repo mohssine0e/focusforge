@@ -4,8 +4,17 @@ import type { Task, TaskDependency, TaskRequest, TaskStatusType } from '../types
 export type { Task, TaskDependency, TaskRequest, TaskStatusType } from '../types';
 
 class TaskApi {
-  async getTasksByProject(projectId: number): Promise<Task[]> {
-    const response = await httpClient.get(`/api/projects/${projectId}/tasks`);
+  async getTasksByProject(projectId: number, sort?: string): Promise<Task[]> {
+    const response = await httpClient.get(`/api/projects/${projectId}/tasks`, {
+      params: sort ? { sort } : undefined,
+    });
+    return response.data;
+  }
+
+  async getRecommendedTask(projectId: number, strategy: string): Promise<Task | null> {
+    const response = await httpClient.get(`/api/projects/${projectId}/tasks/recommended`, {
+      params: { strategy },
+    });
     return response.data;
   }
 
