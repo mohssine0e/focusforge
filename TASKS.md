@@ -848,7 +848,7 @@ Goal: user can track focus sessions linked to tasks.
 
 ### Task 35 - Create FocusSession backend model
 
-- [ ] **Task 35 complete**
+- [x] **Task 35 complete**
 
 Create:
 
