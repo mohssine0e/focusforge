@@ -6,6 +6,8 @@ import com.focusforge.entity.TaskDependency;
 import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
 import com.focusforge.factory.TaskFactory;
+import com.focusforge.observer.TaskObserver;
+import com.focusforge.observer.TaskStatusChangedEvent;
 import com.focusforge.repository.ProjectRepository;
 import com.focusforge.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +23,15 @@ public class TaskService {
     private ProjectRepository projectRepository;
     private TaskStateService taskStateService;
     private TaskDependencyService taskDependencyService;
+    private List<TaskObserver> taskObservers;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService, TaskDependencyService taskDependencyService) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService, TaskDependencyService taskDependencyService, List<TaskObserver> taskObservers) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.taskStateService = taskStateService;
         this.taskDependencyService = taskDependencyService;
+        this.taskObservers = taskObservers;
     }
 
     public Task createTask(Long projectId, String title, String description, TaskType type) {
@@ -66,10 +70,11 @@ public class TaskService {
     public Task updateTaskStatus(Long id, TaskStatus newStatus) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + id));
+        TaskStatus previousStatus = task.getStatus();
 
         // Validate state transition using the State pattern
-        if (!taskStateService.isValidTransition(task.getStatus(), newStatus)) {
-            throw new IllegalArgumentException("Invalid task status transition from " + task.getStatus() + " to " + newStatus);
+        if (!taskStateService.isValidTransition(previousStatus, newStatus)) {
+            throw new IllegalArgumentException("Invalid task status transition from " + previousStatus + " to " + newStatus);
         }
 
         // Check dependencies when moving to IN_PROGRESS
@@ -85,6 +90,13 @@ public class TaskService {
         }
 
         task.setStatus(newStatus);
-        return taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
+        notifyTaskStatusChanged(savedTask, previousStatus, newStatus);
+        return savedTask;
+    }
+
+    private void notifyTaskStatusChanged(Task task, TaskStatus previousStatus, TaskStatus newStatus) {
+        TaskStatusChangedEvent event = new TaskStatusChangedEvent(task, previousStatus, newStatus);
+        taskObservers.forEach(observer -> observer.onTaskStatusChanged(event));
     }
 }
