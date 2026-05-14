@@ -58,6 +58,17 @@ export interface TaskDependency {
   createdAt: string;
 }
 
+export type NotificationType = 'TASK_UPDATED' | 'TASK_BLOCKED' | 'TASK_COMPLETED' | 'DEADLINE_WARNING';
+
+export interface AppNotification {
+  id: number;
+  message: string;
+  type: NotificationType;
+  read: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface TaskRequest {
   title: string;
   description: string;

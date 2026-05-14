@@ -755,7 +755,7 @@ Validate:
 
 ### Task 31 - Build notification panel frontend
 
-- [ ] **Task 31 complete**
+- [x] **Task 31 complete**
 
 Add notification UI:
 
