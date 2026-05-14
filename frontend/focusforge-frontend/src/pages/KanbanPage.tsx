@@ -88,10 +88,9 @@ const KanbanPage: React.FC = () => {
 
   const updateTaskStatus = async (taskId: number, newStatus: TaskStatusType) => {
     try {
-      await taskApi.updateTaskStatus(taskId, newStatus);
-      // Update local state
+      const updatedTask = await taskApi.updateTaskStatus(taskId, newStatus);
       setTasks(tasks.map(t =>
-        t.id === taskId ? { ...t, status: newStatus } : t
+        t.id === taskId ? updatedTask : t
       ));
     } catch (err) {
       setError('Failed to update task status');
@@ -136,12 +135,31 @@ const KanbanPage: React.FC = () => {
                       {task.status}
                     </span>
                     <span className={`rounded-full px-2 py-1 ${priorityClass[task.priority] || priorityClass.MEDIUM}`}>
-                      {task.priority}
+                      {task.priorityLabel ?? task.priority}
                     </span>
                     <span className="rounded-full bg-fuchsia-400/10 px-2 py-1 text-fuchsia-200">
                       {task.type}
                     </span>
                   </div>
+                  {(task.overdue || task.dueSoon || task.dependencyWarning) && (
+                    <div className="mt-3 space-y-2 text-xs">
+                      {task.overdue && (
+                        <p className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-100">
+                          Overdue
+                        </p>
+                      )}
+                      {task.dueSoon && (
+                        <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-amber-100">
+                          Due soon
+                        </p>
+                      )}
+                      {task.dependencyWarning && (
+                        <p className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-100">
+                          {task.blockedReason ?? 'Blocked by dependencies'}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {getTransitionButtons(task)}
                 </div>
               ))}

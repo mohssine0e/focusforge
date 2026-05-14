@@ -4,6 +4,7 @@ import './App.css';
 import { healthApi } from './api/healthApi';
 import { notificationApi } from './api/notificationApi';
 import FocusPage from './pages/FocusPage';
+import KanbanPage from './pages/KanbanPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
 import WorkspacePage from './pages/WorkspacePage';
@@ -246,6 +247,7 @@ function App() {
             <Route path="/workspaces" element={<WorkspacePage />} />
             <Route path="/workspaces/:id" element={<WorkspaceDetailPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/projects/:id/kanban" element={<KanbanPage />} />
             <Route path="/focus" element={<FocusPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

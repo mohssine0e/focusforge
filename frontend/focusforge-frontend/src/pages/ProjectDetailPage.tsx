@@ -329,7 +329,7 @@ const ProjectDetailPage: React.FC = () => {
                         {recommendedTask.status}
                       </span>
                       <span className={`rounded-full px-2 py-1 ${priorityClass[recommendedTask.priority] ?? priorityClass.MEDIUM}`}>
-                        {recommendedTask.priority}
+                        {recommendedTask.priorityLabel ?? recommendedTask.priority}
                       </span>
                       <span className="rounded-full bg-slate-800 px-2 py-1 text-slate-300">
                         {recommendedTask.estimatedMinutes ?? 0} min
@@ -403,9 +403,29 @@ const ProjectDetailPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                      {task.priorityLabel && <span>{task.priorityLabel}</span>}
                       {task.estimatedMinutes && <span>{task.estimatedMinutes} min estimate</span>}
                       {task.dueDate && <span>Due {new Date(task.dueDate).toLocaleString()}</span>}
                     </div>
+                    {(task.overdue || task.dueSoon || task.dependencyWarning) && (
+                      <div className="mt-3 flex flex-col gap-2">
+                        {task.overdue && (
+                          <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">
+                            Overdue task
+                          </div>
+                        )}
+                        {task.dueSoon && (
+                          <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+                            Due soon
+                          </div>
+                        )}
+                        {task.dependencyWarning && (
+                          <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">
+                            {task.blockedReason ?? 'Blocked by unfinished dependencies'}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/70 p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Dependencies</h4>

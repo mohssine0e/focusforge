@@ -28,6 +28,13 @@ export interface Task {
   type: TaskType;
   dueDate: string;
   estimatedMinutes: number;
+  projectId?: number;
+  projectName?: string;
+  priorityLabel?: string;
+  overdue?: boolean;
+  dueSoon?: boolean;
+  dependencyWarning?: boolean;
+  blockedReason?: string | null;
   project?: {
     id: number;
     name: string;

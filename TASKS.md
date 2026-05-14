@@ -966,7 +966,7 @@ Validate:
 
 ### Task 40 - Show decorated task metadata in frontend
 
-- [ ] **Task 40 complete**
+- [x] **Task 40 complete**
 
 Update task cards, lists, and Kanban cards to show:
 
