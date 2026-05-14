@@ -23,8 +23,10 @@ public class TaskController {
     }
 
     @GetMapping("/projects/{projectId}/tasks")
-    public ResponseEntity<ApiResponse<List<Task>>> getTasksByProject(@PathVariable Long projectId) {
-        List<Task> tasks = taskService.getTasksByProject(projectId);
+    public ResponseEntity<ApiResponse<List<Task>>> getTasksByProject(
+            @PathVariable Long projectId,
+            @RequestParam(required = false) String sort) {
+        List<Task> tasks = taskService.getTasksByProject(projectId, sort);
         ApiResponse<List<Task>> response = ApiResponse.success(tasks);
         return ResponseEntity.ok(response);
     }

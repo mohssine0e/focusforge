@@ -10,6 +10,7 @@ import com.focusforge.observer.TaskObserver;
 import com.focusforge.observer.TaskStatusChangedEvent;
 import com.focusforge.repository.ProjectRepository;
 import com.focusforge.repository.TaskRepository;
+import com.focusforge.strategy.TaskSortStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,14 +25,16 @@ public class TaskService {
     private TaskStateService taskStateService;
     private TaskDependencyService taskDependencyService;
     private List<TaskObserver> taskObservers;
+    private List<TaskSortStrategy> taskSortStrategies;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService, TaskDependencyService taskDependencyService, List<TaskObserver> taskObservers) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService, TaskDependencyService taskDependencyService, List<TaskObserver> taskObservers, List<TaskSortStrategy> taskSortStrategies) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.taskStateService = taskStateService;
         this.taskDependencyService = taskDependencyService;
         this.taskObservers = taskObservers;
+        this.taskSortStrategies = taskSortStrategies;
     }
 
     public Task createTask(Long projectId, String title, String description, TaskType type) {
@@ -44,6 +47,20 @@ public class TaskService {
 
     public List<Task> getTasksByProject(Long projectId) {
         return taskRepository.findByProjectId(projectId);
+    }
+
+    public List<Task> getTasksByProject(Long projectId, String sort) {
+        List<Task> tasks = getTasksByProject(projectId);
+
+        if (sort == null || sort.isBlank()) {
+            return tasks;
+        }
+
+        return taskSortStrategies.stream()
+                .filter(strategy -> strategy.getSortKey().equalsIgnoreCase(sort))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported task sort: " + sort))
+                .sort(tasks);
     }
 
     public Task updateTask(Long id, String title, String description, TaskType type) {

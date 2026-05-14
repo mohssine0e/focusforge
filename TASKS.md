@@ -780,7 +780,7 @@ Goal: task sorting and next-task recommendation are powered by Strategy pattern.
 
 ### Task 32 - Implement task sorting strategies
 
-- [ ] **Task 32 complete**
+- [x] **Task 32 complete**
 
 Create strategies:
 
