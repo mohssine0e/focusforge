@@ -8,9 +8,11 @@ import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
 import com.focusforge.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -52,6 +54,17 @@ public class TaskController {
             @RequestParam TaskType type) {
         Task task = taskService.createTask(projectId, title, description, type);
         ApiResponse<TaskResponse> response = ApiResponse.success(taskResponseDecorator.decorate(task), "Task created successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/tasks/due")
+    public ResponseEntity<ApiResponse<List<TaskResponse>>> getDueTasks(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Long workspaceId,
+            @RequestParam(required = false) Long projectId) {
+        List<Task> tasks = taskService.getDueTasks(from, to, workspaceId, projectId);
+        ApiResponse<List<TaskResponse>> response = ApiResponse.success(taskResponseDecorator.decorateAll(tasks));
         return ResponseEntity.ok(response);
     }
 

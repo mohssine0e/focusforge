@@ -12,9 +12,17 @@ import com.focusforge.repository.ProjectRepository;
 import com.focusforge.repository.TaskRepository;
 import com.focusforge.strategy.TaskRecommendationStrategy;
 import com.focusforge.strategy.TaskSortStrategy;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -96,6 +104,40 @@ public class TaskService {
 
     public Optional<Task> getTaskById(Long id) {
         return taskRepository.findById(id);
+    }
+
+    public List<Task> getDueTasks(LocalDate from, LocalDate to, Long workspaceId, Long projectId) {
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new IllegalArgumentException("from date must be before or equal to to date");
+        }
+
+        LocalDateTime fromDate = from == null ? null : from.atStartOfDay();
+        LocalDateTime toDate = to == null ? null : to.atTime(LocalTime.MAX);
+        Specification<Task> dueTaskSpec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.isNotNull(root.get("dueDate")));
+
+            if (fromDate != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("dueDate"), fromDate));
+            }
+
+            if (toDate != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("dueDate"), toDate));
+            }
+
+            if (workspaceId != null || projectId != null) {
+                Join<Object, Object> project = root.join("project");
+                if (workspaceId != null) {
+                    predicates.add(criteriaBuilder.equal(project.get("workspace").get("id"), workspaceId));
+                }
+                if (projectId != null) {
+                    predicates.add(criteriaBuilder.equal(project.get("id"), projectId));
+                }
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+        return taskRepository.findAll(dueTaskSpec, Sort.by(Sort.Direction.ASC, "dueDate"));
     }
 
     public Task updateTaskStatus(Long id, TaskStatus newStatus) {

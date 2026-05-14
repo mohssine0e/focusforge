@@ -1070,7 +1070,7 @@ Goal: user has Kanban plus one planning view.
 
 ### Task 44 - Add backend endpoint for due tasks
 
-- [ ] **Task 44 complete**
+- [x] **Task 44 complete**
 
 Create endpoint:
 
