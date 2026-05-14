@@ -1092,7 +1092,7 @@ Validate:
 
 ### Task 45 - Build Calendar planning view frontend
 
-- [ ] **Task 45 complete**
+- [x] **Task 45 complete**
 
 Create Calendar page:
 

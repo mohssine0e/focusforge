@@ -3,6 +3,13 @@ import type { Task, TaskDependency, TaskRequest, TaskStatusType } from '../types
 
 export type { Task, TaskDependency, TaskRequest, TaskStatusType } from '../types';
 
+export interface DueTaskFilters {
+  from?: string;
+  to?: string;
+  workspaceId?: number;
+  projectId?: number;
+}
+
 class TaskApi {
   async getTasksByProject(projectId: number, sort?: string): Promise<Task[]> {
     const response = await httpClient.get(`/api/projects/${projectId}/tasks`, {
@@ -20,6 +27,13 @@ class TaskApi {
 
   async getTask(id: number): Promise<Task> {
     const response = await httpClient.get(`/api/tasks/${id}`);
+    return response.data;
+  }
+
+  async getDueTasks(filters?: DueTaskFilters): Promise<Task[]> {
+    const response = await httpClient.get('/api/tasks/due', {
+      params: filters,
+    });
     return response.data;
   }
 

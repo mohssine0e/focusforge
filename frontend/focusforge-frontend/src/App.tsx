@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { notificationApi } from './api/notificationApi';
+import CalendarPage from './pages/CalendarPage';
 import DashboardPage from './pages/DashboardPage';
 import FocusPage from './pages/FocusPage';
 import KanbanPage from './pages/KanbanPage';
@@ -172,6 +173,16 @@ function App() {
               Workspaces
             </NavLink>
             <NavLink
+              to="/calendar"
+              className={({ isActive }) =>
+                `rounded-md px-4 py-2 text-sm font-medium transition ${
+                  isActive ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                }`
+              }
+            >
+              Calendar
+            </NavLink>
+            <NavLink
               to="/focus"
               className={({ isActive }) =>
                 `rounded-md px-4 py-2 text-sm font-medium transition ${
@@ -192,6 +203,7 @@ function App() {
             <Route path="/workspaces/:id" element={<WorkspaceDetailPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/projects/:id/kanban" element={<KanbanPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/focus" element={<FocusPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
