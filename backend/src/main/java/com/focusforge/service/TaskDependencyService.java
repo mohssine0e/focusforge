@@ -9,7 +9,9 @@ import com.focusforge.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -33,6 +35,10 @@ public class TaskDependencyService {
 
         if (taskDependencyRepository.existsByTaskIdAndDependsOnTaskId(taskId, dependsOnTaskId)) {
             throw new IllegalArgumentException("Dependency already exists");
+        }
+
+        if (hasDependencyPath(dependsOnTaskId, taskId, new HashSet<>())) {
+            throw new IllegalArgumentException("Circular dependency detected");
         }
 
         TaskDependency dependency = new TaskDependency(task, dependsOnTask);
@@ -82,5 +88,22 @@ public class TaskDependencyService {
     private Task findTask(Long taskId) {
         return taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", taskId));
+    }
+
+    private boolean hasDependencyPath(Long startTaskId, Long targetTaskId, Set<Long> visitedTaskIds) {
+        if (startTaskId.equals(targetTaskId)) {
+            return true;
+        }
+
+        if (!visitedTaskIds.add(startTaskId)) {
+            return false;
+        }
+
+        return taskDependencyRepository.findByTaskId(startTaskId)
+                .stream()
+                .anyMatch(dependency -> hasDependencyPath(
+                        dependency.getDependsOnTask().getId(),
+                        targetTaskId,
+                        visitedTaskIds));
     }
 }

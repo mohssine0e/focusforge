@@ -2,12 +2,12 @@ package com.focusforge.service;
 
 import com.focusforge.entity.Project;
 import com.focusforge.entity.Task;
+import com.focusforge.entity.TaskDependency;
 import com.focusforge.entity.TaskStatus;
 import com.focusforge.entity.TaskType;
 import com.focusforge.factory.TaskFactory;
 import com.focusforge.repository.ProjectRepository;
 import com.focusforge.repository.TaskRepository;
-import com.focusforge.service.TaskStateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +20,14 @@ public class TaskService {
     private TaskRepository taskRepository;
     private ProjectRepository projectRepository;
     private TaskStateService taskStateService;
+    private TaskDependencyService taskDependencyService;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, TaskStateService taskStateService, TaskDependencyService taskDependencyService) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.taskStateService = taskStateService;
+        this.taskDependencyService = taskDependencyService;
     }
 
     public Task createTask(Long projectId, String title, String description, TaskType type) {
@@ -67,8 +69,19 @@ public class TaskService {
 
         // Validate state transition using the State pattern
         if (!taskStateService.isValidTransition(task.getStatus(), newStatus)) {
-            // This is a placeholder - we would need to implement the actual validation
-            throw new RuntimeException("Invalid task status transition from " + task.getStatus() + " to " + newStatus);
+            throw new IllegalArgumentException("Invalid task status transition from " + task.getStatus() + " to " + newStatus);
+        }
+
+        // Check dependencies when moving to IN_PROGRESS
+        if (newStatus == TaskStatus.IN_PROGRESS && taskDependencyService.hasDependencies(id)) {
+            // Check if all dependencies are completed
+            List<TaskDependency> dependencies = taskDependencyService.getDependenciesForTask(id);
+            for (TaskDependency dependency : dependencies) {
+                if (dependency.getDependsOnTask().getStatus() != TaskStatus.DONE) {
+                    throw new IllegalArgumentException("Cannot move task to IN_PROGRESS: dependency '" +
+                        dependency.getDependsOnTask().getTitle() + "' is not completed");
+                }
+            }
         }
 
         task.setStatus(newStatus);
