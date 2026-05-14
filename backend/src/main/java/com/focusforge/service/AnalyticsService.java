@@ -14,6 +14,8 @@ import com.focusforge.repository.TaskRepository;
 import com.focusforge.repository.WorkspaceRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +40,9 @@ public class AnalyticsService {
 
     public AnalyticsOverviewResponse getOverview() {
         List<Task> tasks = taskRepository.findAll();
+        LocalDate today = LocalDate.now();
+        LocalDate weekEnd = today.plusDays(7);
+        LocalDateTime now = LocalDateTime.now();
         long totalFocusMinutes = focusSessionRepository.findAll()
                 .stream()
                 .mapToLong(this::durationMinutes)
@@ -50,7 +55,12 @@ public class AnalyticsService {
                 countBy(tasks, Task::getStatus),
                 countBy(tasks, Task::getPriority),
                 tasks.stream().filter(task -> task.getStatus() == TaskStatus.DONE).count(),
-                totalFocusMinutes
+                totalFocusMinutes,
+                tasks.stream().filter(task -> isOpen(task) && isDueOn(task, today)).count(),
+                tasks.stream().filter(task -> isOpen(task) && isDueBetween(task, today, weekEnd)).count(),
+                tasks.stream().filter(task -> isOpen(task) && isOverdue(task, now)).count(),
+                tasks.stream().filter(task -> isOpen(task) && isHighPriority(task)).count(),
+                tasks.stream().filter(task -> task.getStatus() == TaskStatus.BLOCKED).count()
         );
     }
 
@@ -82,5 +92,29 @@ public class AnalyticsService {
 
     private long durationMinutes(FocusSession session) {
         return session.getDurationMinutes() == null ? 0 : session.getDurationMinutes();
+    }
+
+    private boolean isOpen(Task task) {
+        return task.getStatus() != TaskStatus.DONE;
+    }
+
+    private boolean isDueOn(Task task, LocalDate date) {
+        return task.getDueDate() != null && task.getDueDate().toLocalDate().isEqual(date);
+    }
+
+    private boolean isDueBetween(Task task, LocalDate start, LocalDate end) {
+        if (task.getDueDate() == null) {
+            return false;
+        }
+        LocalDate dueDate = task.getDueDate().toLocalDate();
+        return !dueDate.isBefore(start) && !dueDate.isAfter(end);
+    }
+
+    private boolean isOverdue(Task task, LocalDateTime now) {
+        return task.getDueDate() != null && task.getDueDate().isBefore(now);
+    }
+
+    private boolean isHighPriority(Task task) {
+        return task.getPriority() == Priority.HIGH || task.getPriority() == Priority.URGENT;
     }
 }

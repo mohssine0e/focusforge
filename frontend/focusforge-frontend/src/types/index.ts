@@ -98,6 +98,11 @@ export interface AnalyticsOverview {
   tasksByPriority: Record<string, number>;
   completedTaskCount: number;
   totalFocusMinutes: number;
+  tasksDueToday: number;
+  tasksDueThisWeek: number;
+  overdueTasks: number;
+  highPriorityOpenTasks: number;
+  blockedTasks: number;
 }
 
 export interface TaskRequest {

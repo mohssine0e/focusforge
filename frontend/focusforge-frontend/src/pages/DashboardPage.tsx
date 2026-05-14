@@ -95,6 +95,13 @@ const DashboardPage: React.FC = () => {
   const completionRate = overview && overview.totalTasks > 0
     ? Math.round((overview.completedTaskCount / overview.totalTasks) * 100)
     : 0;
+  const workloadMetrics = [
+    { label: 'Due Today', value: overview?.tasksDueToday ?? 0, accent: 'text-[#7c6ef7]' },
+    { label: 'Due This Week', value: overview?.tasksDueThisWeek ?? 0, accent: 'text-[#f0a500]' },
+    { label: 'Overdue', value: overview?.overdueTasks ?? 0, accent: 'text-[#e05555]' },
+    { label: 'High Priority Open', value: overview?.highPriorityOpenTasks ?? 0, accent: 'text-[#e07855]' },
+    { label: 'Blocked', value: overview?.blockedTasks ?? 0, accent: 'text-[#e05555]' },
+  ];
 
   if (loading) {
     return <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 text-slate-300">Loading dashboard...</div>;
@@ -123,6 +130,26 @@ const DashboardPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Workload Snapshot</h2>
+            <p className="mt-1 text-sm text-slate-500">Open task pressure across deadlines, priority, and blockers.</p>
+          </div>
+          <span className="rounded-full border border-[#2e2e45] bg-[#22223a] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#8b8ba0]">
+            Live API data
+          </span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {workloadMetrics.map((metric) => (
+            <div key={metric.label} className="rounded-lg border border-[#2e2e45] bg-[#1a1a24] p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#8b8ba0]">{metric.label}</p>
+              <p className={`mt-3 text-3xl font-semibold ${metric.accent}`}>{metric.value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
