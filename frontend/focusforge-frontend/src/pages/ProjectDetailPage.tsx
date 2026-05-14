@@ -119,7 +119,6 @@ const ProjectDetailPage: React.FC = () => {
     if (id) {
       const projectId = parseInt(id);
       const sort = sortOption === 'none' ? undefined : sortOption;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchProject(projectId);
       fetchTasks(projectId, sort);
       fetchRecommendedTask(projectId, recommendationStrategy);

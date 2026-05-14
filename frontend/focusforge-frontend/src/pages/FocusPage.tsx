@@ -80,12 +80,12 @@ const FocusPage: React.FC = () => {
   }, [loadSessions, loadTasks]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadFocusData();
   }, [loadFocusData]);
 
   useEffect(() => {
     if (!activeSession) {
-      setElapsedSeconds(0);
       return;
     }
 
@@ -112,6 +112,7 @@ const FocusPage: React.FC = () => {
 
     try {
       setActionLoading(true);
+      setElapsedSeconds(0);
       const session = await focusApi.startSession(Number(selectedTaskId), sessionType);
       setActiveSession(session);
       await loadSessions();
@@ -131,6 +132,7 @@ const FocusPage: React.FC = () => {
       setActionLoading(true);
       await focusApi.finishSession(activeSession.id);
       setActiveSession(null);
+      setElapsedSeconds(0);
       await loadSessions();
       setError(null);
     } catch (err) {
@@ -148,6 +150,7 @@ const FocusPage: React.FC = () => {
       setActionLoading(true);
       await focusApi.cancelSession(activeSession.id);
       setActiveSession(null);
+      setElapsedSeconds(0);
       await loadSessions();
       setError(null);
     } catch (err) {
