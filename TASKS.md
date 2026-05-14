@@ -1119,7 +1119,7 @@ Goal: make the app feel like a serious portfolio project.
 
 ### Task 46 - Improve app layout and navigation
 
-- [ ] **Task 46 complete**
+- [x] **Task 46 complete**
 
 Create or polish:
 
