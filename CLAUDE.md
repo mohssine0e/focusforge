@@ -38,6 +38,10 @@ If the session is interrupted or context is lost for any reason, re-read `CLAUDE
 
 On the next run, resume from the first unfinished task. Never restart from Task 1 and never redo completed tasks.
 
+### Speed Rule
+
+Work in the smallest possible steps. Do not try to implement many files in one tool call. One file at a time, validate, move on. This reduces session crashes and makes progress visible.
+
 ---
 
 ## Project Vision
@@ -203,6 +207,117 @@ src/
 
 ---
 
+## UI Design System — Non-Negotiable
+
+The UI must match the visual quality of `exemple_design.png` and `exemple_design2.png` at the repo root. Study these images before writing any frontend code. The app must look like a premium dark-mode productivity SaaS — similar to Linear, Notion, or Raycast.
+
+### Color Palette
+
+```
+Background:       #0f0f13  (main bg)
+Surface:          #1a1a24  (cards, sidebar)
+Surface elevated: #22223a  (modals, dropdowns)
+Border:           #2e2e45
+Primary:          #7c6ef7  (purple — buttons, links, active states)
+Primary hover:    #6c5ee0
+Text primary:     #f0f0f5
+Text secondary:   #8b8ba0
+Text muted:       #55556a
+
+Status colors:
+  TODO:        #55556a  (muted)
+  IN_PROGRESS: #7c6ef7  (purple)
+  REVIEW:      #f0a500  (amber)
+  BLOCKED:     #e05555  (red)
+  DONE:        #22c55e  (green)
+
+Priority colors:
+  LOW:      #55556a
+  MEDIUM:   #f0a500
+  HIGH:     #e07855
+  CRITICAL: #e05555
+```
+
+### Typography
+
+- Font: `Inter` (import from Google Fonts)
+- Page titles: `text-xl font-semibold text-white`
+- Section headers: `text-sm font-medium text-gray-400 uppercase tracking-wider`
+- Body: `text-sm text-gray-300`
+- Muted: `text-xs text-gray-500`
+
+### Layout
+
+- Sidebar: fixed, 240px wide, dark background `#1a1a24`, with logo at top and user info at bottom
+- Topbar: fixed, full width minus sidebar, height 56px, with search and notification bell
+- Main content: scrollable, padded `p-6`, max-width centered on wide screens
+- Cards: `bg-[#1a1a24] border border-[#2e2e45] rounded-xl p-5`
+
+### Components (use shadcn/ui)
+
+Install and use these shadcn/ui components:
+- `Button` — primary uses purple bg, ghost/outline variants for secondary actions
+- `Badge` — for status and priority labels, colored by the palette above
+- `Card` — for dashboard stat cards and project cards
+- `Dialog` — for create/edit/delete modals
+- `Input`, `Textarea`, `Select` — for all forms
+- `Separator` — for visual dividers
+- `Tooltip` — for icon buttons
+- `DropdownMenu` — for action menus (edit, delete, etc.)
+- `Progress` — for project completion bars
+
+### Dashboard (matches exemple_design.png)
+
+The dashboard must have:
+- Top stat cards row: Total Projects, Total Tasks, Tasks Completed, Focus Time, Completion Rate
+- Each card shows: icon, label, big number, trend vs last week (↑ green or ↓ red)
+- Middle row: Tasks by Status donut chart (Recharts) | Upcoming Deadlines list | Recent Focus Sessions list
+- Bottom: Project Progress Overview — each project as a row with progress bar and status badge
+
+### Sidebar Navigation
+
+Items in order:
+1. Dashboard
+2. Workspaces
+3. Projects
+4. Kanban Board
+5. Calendar
+6. Focus Mode
+7. Analytics
+8. Notifications
+
+Active item: purple background `bg-[#7c6ef7]/20` with purple text and left border `border-l-2 border-[#7c6ef7]`
+
+### Kanban Board
+
+- Dark columns with header showing status name and task count badge
+- Task cards: `bg-[#22223a] rounded-lg p-3 mb-2`
+- Cards show: title, priority badge (colored dot + label), type badge, due date, action buttons
+- Column headers colored by status
+
+### Forms and Modals
+
+- All forms inside `Dialog` (shadcn/ui modal)
+- Dark modal background `bg-[#1a1a24]`
+- Input fields: `bg-[#0f0f13] border-[#2e2e45]` with white text
+- Submit button: purple primary
+- Cancel button: ghost
+
+### Empty States
+
+Every list or page with no data must show:
+- Centered icon (use lucide-react)
+- Title: "No X yet"
+- Subtitle: helpful hint
+- CTA button to create
+
+### Loading States
+
+Use skeleton loaders (gray pulsing blocks) not spinners for page content.
+Use small spinner only for button loading states.
+
+---
+
 ## Development Workflow
 
 Work task by task from `TASKS.md`.
@@ -242,56 +357,6 @@ Every phase should make the application more usable than before.
 
 ---
 
-## UI Rules
-
-The UI should look modern, serious, and usable — like a premium productivity SaaS product.
-
-Refer to `exemple_design.png` and `exemple_design2.png` at the repo root for the visual style and component quality to aim for.
-
-Design inspiration: Linear, Notion, Raycast, Vercel.
-
-**Use:**
-
-- App shell with fixed sidebar and topbar
-- Dashboard summary cards
-- Clean forms with validation feedback
-- Tables or structured lists
-- Kanban columns with drag-and-drop
-- Calendar view
-- Status badges (color-coded)
-- Priority indicators
-- Recharts charts
-- Loading states
-- Error states
-- Empty states with helpful messages
-- Delete confirmation dialogs
-- Smooth transitions and subtle hover effects
-- Elegant dark mode
-- shadcn/ui components
-- TailwindCSS for layout and spacing
-
-**Avoid:**
-
-- Raw unstyled HTML
-- Bootstrap-style generic admin look
-- Cluttered pages
-- Too many colors
-- Poor spacing
-- Decorative landing pages or marketing hero sections
-- Features outside the agreed scope
-- Mock data or console.log as substitute for real behavior
-
-**Frontend priorities:**
-
-- Spacing and visual hierarchy
-- Typography consistency
-- Polished components
-- Responsive layout
-- Modern dashboard feel
-- Calm, intelligent, productivity-focused aesthetic
-
----
-
 ## Validation Expectations
 
 Backend:
@@ -319,7 +384,7 @@ npm run dev
 By the end of `TASKS.md`, FocusForge must include:
 
 - Spring Boot backend with all 8 patterns implemented in real code
-- React + TypeScript frontend
+- React + TypeScript frontend matching the design system above
 - PostgreSQL persistence
 - Workspaces, Projects, Tasks, Task dependencies
 - Kanban board
