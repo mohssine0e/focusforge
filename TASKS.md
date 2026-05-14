@@ -630,7 +630,7 @@ Validate:
 
 ### Task 25 - Add dependency backend endpoints
 
-- [ ] **Task 25 complete**
+- [x] **Task 25 complete**
 
 Create endpoints:
 

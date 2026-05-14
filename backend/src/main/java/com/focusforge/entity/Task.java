@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "tasks")
@@ -43,6 +44,12 @@ public class Task extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Project project;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<TaskDependency> dependencies;
+
+    @OneToMany(mappedBy = "dependsOnTask", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<TaskDependency> dependents;
 
     // Constructors
     public Task() {
@@ -124,5 +131,21 @@ public class Task extends BaseEntity {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public Set<TaskDependency> getDependencies() {
+        return dependencies;
+    }
+
+    public void setDependencies(Set<TaskDependency> dependencies) {
+        this.dependencies = dependencies;
+    }
+
+    public Set<TaskDependency> getDependents() {
+        return dependents;
+    }
+
+    public void setDependents(Set<TaskDependency> dependents) {
+        this.dependents = dependents;
     }
 }
