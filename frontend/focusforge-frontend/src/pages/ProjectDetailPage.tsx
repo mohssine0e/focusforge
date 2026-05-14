@@ -2,7 +2,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { projectApi } from '../api/projectApi';
 import { taskApi } from '../api/taskApi';
-import type { Project, Task, TaskRequest, TaskType } from '../types';
+import type { Project, Task, TaskDependency, TaskRequest, TaskType } from '../types';
 
 const statusClass: Record<string, string> = {
   TODO: 'bg-slate-400/10 text-slate-200',
@@ -19,10 +19,33 @@ const priorityClass: Record<string, string> = {
   URGENT: 'bg-red-400/10 text-red-200',
 };
 
+const getErrorMessage = (err: unknown, fallback: string) => {
+  if (
+    typeof err === 'object' &&
+    err !== null &&
+    'response' in err &&
+    typeof err.response === 'object' &&
+    err.response !== null &&
+    'data' in err.response &&
+    typeof err.response.data === 'object' &&
+    err.response.data !== null &&
+    'message' in err.response.data &&
+    typeof err.response.data.message === 'string'
+  ) {
+    return err.response.data.message;
+  }
+
+  return fallback;
+};
+
 const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [dependenciesByTask, setDependenciesByTask] = useState<Record<number, TaskDependency[]>>({});
+  const [dependencySelections, setDependencySelections] = useState<Record<number, string>>({});
+  const [dependencyErrors, setDependencyErrors] = useState<Record<number, string>>({});
+  const [dependencyBusyTaskId, setDependencyBusyTaskId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newTask, setNewTask] = useState<TaskRequest>({
@@ -49,15 +72,27 @@ const ProjectDetailPage: React.FC = () => {
     }
   }, []);
 
+  const loadDependencies = useCallback(async (projectTasks: Task[]) => {
+    const entries = await Promise.all(
+      projectTasks.map(async (task) => {
+        const dependencies = await taskApi.getDependencies(task.id);
+        return [task.id, dependencies] as const;
+      })
+    );
+
+    setDependenciesByTask(Object.fromEntries(entries));
+  }, []);
+
   const fetchTasks = useCallback(async (projectId: number) => {
     try {
       const data = await taskApi.getTasksByProject(projectId);
       setTasks(data);
+      await loadDependencies(data);
     } catch (err) {
       setError('Failed to fetch tasks');
       console.error(err);
     }
-  }, []);
+  }, [loadDependencies]);
 
   useEffect(() => {
     if (id) {
@@ -73,7 +108,9 @@ const ProjectDetailPage: React.FC = () => {
 
     try {
       const data = await taskApi.createTask(parseInt(id), newTask);
-      setTasks([...tasks, data]);
+      const nextTasks = [...tasks, data];
+      setTasks(nextTasks);
+      await loadDependencies(nextTasks);
       setNewTask({
         title: '',
         description: '',
@@ -82,6 +119,53 @@ const ProjectDetailPage: React.FC = () => {
     } catch (err) {
       setError('Failed to create task');
       console.error(err);
+    }
+  };
+
+  const handleAddDependency = async (taskId: number) => {
+    const selectedTaskId = Number(dependencySelections[taskId]);
+
+    if (!selectedTaskId) {
+      setDependencyErrors((current) => ({
+        ...current,
+        [taskId]: 'Choose a task dependency first.',
+      }));
+      return;
+    }
+
+    try {
+      setDependencyBusyTaskId(taskId);
+      await taskApi.addDependency(taskId, selectedTaskId);
+      const dependencies = await taskApi.getDependencies(taskId);
+      setDependenciesByTask((current) => ({ ...current, [taskId]: dependencies }));
+      setDependencySelections((current) => ({ ...current, [taskId]: '' }));
+      setDependencyErrors((current) => ({ ...current, [taskId]: '' }));
+    } catch (err) {
+      setDependencyErrors((current) => ({
+        ...current,
+        [taskId]: getErrorMessage(err, 'Failed to add dependency'),
+      }));
+      console.error(err);
+    } finally {
+      setDependencyBusyTaskId(null);
+    }
+  };
+
+  const handleRemoveDependency = async (taskId: number, dependsOnTaskId: number) => {
+    try {
+      setDependencyBusyTaskId(taskId);
+      await taskApi.removeDependency(taskId, dependsOnTaskId);
+      const dependencies = await taskApi.getDependencies(taskId);
+      setDependenciesByTask((current) => ({ ...current, [taskId]: dependencies }));
+      setDependencyErrors((current) => ({ ...current, [taskId]: '' }));
+    } catch (err) {
+      setDependencyErrors((current) => ({
+        ...current,
+        [taskId]: getErrorMessage(err, 'Failed to remove dependency'),
+      }));
+      console.error(err);
+    } finally {
+      setDependencyBusyTaskId(null);
     }
   };
 
@@ -187,6 +271,12 @@ const ProjectDetailPage: React.FC = () => {
           )}
           {tasks.map((task) => {
             const isEditing = editingTaskId === task.id;
+            const dependencies = dependenciesByTask[task.id] ?? [];
+            const dependencyTaskIds = new Set(dependencies.map((dependency) => dependency.dependsOnTaskId));
+            const openDependencies = dependencies.filter((dependency) => dependency.dependsOnTaskStatus !== 'DONE');
+            const availableDependencyTasks = tasks.filter((candidate) => (
+              candidate.id !== task.id && !dependencyTaskIds.has(candidate.id)
+            ));
 
             return (
               <div key={task.id} className="task-item rounded-lg border border-slate-800 bg-slate-900 p-5">
@@ -237,6 +327,86 @@ const ProjectDetailPage: React.FC = () => {
                     <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-400">
                       {task.estimatedMinutes && <span>{task.estimatedMinutes} min estimate</span>}
                       {task.dueDate && <span>Due {new Date(task.dueDate).toLocaleString()}</span>}
+                    </div>
+                    <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/70 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Dependencies</h4>
+                        {openDependencies.length > 0 && (
+                          <span className="rounded-full bg-red-500/10 px-2 py-1 text-xs font-semibold text-red-200">
+                            Blocked by {openDependencies.length}
+                          </span>
+                        )}
+                      </div>
+
+                      {openDependencies.length > 0 && (
+                        <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
+                          Blocked by dependency: {openDependencies.map((dependency) => dependency.dependsOnTaskTitle).join(', ')}
+                        </div>
+                      )}
+
+                      <div className="mt-3 space-y-2">
+                        {dependencies.length === 0 ? (
+                          <p className="rounded-md border border-dashed border-slate-700 px-3 py-2 text-sm text-slate-500">
+                            No dependencies yet.
+                          </p>
+                        ) : (
+                          dependencies.map((dependency) => (
+                            <div
+                              key={dependency.id}
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-800 bg-slate-900 px-3 py-2"
+                            >
+                              <div>
+                                <p className="text-sm font-medium text-slate-100">{dependency.dependsOnTaskTitle}</p>
+                                <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${statusClass[dependency.dependsOnTaskStatus] ?? statusClass.TODO}`}>
+                                  {dependency.dependsOnTaskStatus}
+                                </span>
+                              </div>
+                              <button
+                                className="rounded-md border border-red-500/40 px-2 py-1 text-xs text-red-200 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={dependencyBusyTaskId === task.id}
+                                onClick={() => handleRemoveDependency(task.id, dependency.dependsOnTaskId)}
+                                type="button"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                        <select
+                          className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+                          disabled={availableDependencyTasks.length === 0 || dependencyBusyTaskId === task.id}
+                          value={dependencySelections[task.id] ?? ''}
+                          onChange={(e) => {
+                            setDependencySelections((current) => ({ ...current, [task.id]: e.target.value }));
+                            setDependencyErrors((current) => ({ ...current, [task.id]: '' }));
+                          }}
+                        >
+                          <option value="">Add dependency</option>
+                          {availableDependencyTasks.map((candidate) => (
+                            <option key={candidate.id} value={candidate.id}>
+                              {candidate.title}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          className="rounded-md bg-cyan-400 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={availableDependencyTasks.length === 0 || dependencyBusyTaskId === task.id}
+                          onClick={() => handleAddDependency(task.id)}
+                          type="button"
+                        >
+                          {dependencyBusyTaskId === task.id ? 'Saving...' : 'Add'}
+                        </button>
+                      </div>
+
+                      {availableDependencyTasks.length === 0 && dependencies.length > 0 && (
+                        <p className="mt-2 text-xs text-slate-500">All other project tasks are already dependencies.</p>
+                      )}
+                      {dependencyErrors[task.id] && (
+                        <p className="mt-2 text-sm text-red-200">{dependencyErrors[task.id]}</p>
+                      )}
                     </div>
                     <div className="mt-4 flex gap-2">
                       <button className="rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800" onClick={() => startEditing(task)}>

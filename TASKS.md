@@ -663,7 +663,7 @@ Validate:
 
 ### Task 27 - Build dependency UI
 
-- [ ] **Task 27 complete**
+- [x] **Task 27 complete**
 
 In task detail or task edit UI, show:
 

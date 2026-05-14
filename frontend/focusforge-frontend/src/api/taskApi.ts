@@ -1,7 +1,7 @@
 import { httpClient } from './httpClient';
-import type { Task, TaskRequest, TaskStatusType } from '../types';
+import type { Task, TaskDependency, TaskRequest, TaskStatusType } from '../types';
 
-export type { Task, TaskRequest, TaskStatusType } from '../types';
+export type { Task, TaskDependency, TaskRequest, TaskStatusType } from '../types';
 
 class TaskApi {
   async getTasksByProject(projectId: number): Promise<Task[]> {
@@ -45,6 +45,20 @@ class TaskApi {
       params: { status },
     });
     return response.data;
+  }
+
+  async getDependencies(taskId: number): Promise<TaskDependency[]> {
+    const response = await httpClient.get(`/api/tasks/${taskId}/dependencies`);
+    return response.data;
+  }
+
+  async addDependency(taskId: number, dependsOnTaskId: number): Promise<TaskDependency> {
+    const response = await httpClient.post(`/api/tasks/${taskId}/dependencies/${dependsOnTaskId}`);
+    return response.data;
+  }
+
+  async removeDependency(taskId: number, dependsOnTaskId: number): Promise<void> {
+    await httpClient.delete(`/api/tasks/${taskId}/dependencies/${dependsOnTaskId}`);
   }
 }
 

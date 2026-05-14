@@ -1,5 +1,6 @@
 package com.focusforge.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -41,13 +42,16 @@ public class Task extends BaseEntity {
     private Integer estimatedMinutes;
 
     @NotNull
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Project project;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<TaskDependency> dependencies;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "dependsOnTask", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<TaskDependency> dependents;
 

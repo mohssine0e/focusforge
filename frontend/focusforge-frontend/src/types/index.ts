@@ -28,7 +28,7 @@ export interface Task {
   type: TaskType;
   dueDate: string;
   estimatedMinutes: number;
-  project: {
+  project?: {
     id: number;
     name: string;
   };
@@ -47,6 +47,16 @@ export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type TaskStatusType = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'REVIEW' | 'DONE';
 
 export type TaskType = 'STUDY' | 'CODING' | 'RESEARCH' | 'ADMIN';
+
+export interface TaskDependency {
+  id: number;
+  taskId: number;
+  taskTitle: string;
+  dependsOnTaskId: number;
+  dependsOnTaskTitle: string;
+  dependsOnTaskStatus: TaskStatusType;
+  createdAt: string;
+}
 
 export interface TaskRequest {
   title: string;
