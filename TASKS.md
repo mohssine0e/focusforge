@@ -739,7 +739,7 @@ Validate:
 
 ### Task 30 - Add notification API endpoints
 
-- [ ] **Task 30 complete**
+- [x] **Task 30 complete**
 
 Create endpoints:
 
